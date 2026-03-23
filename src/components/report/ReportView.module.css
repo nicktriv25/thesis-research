@@ -1,0 +1,38 @@
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  background: var(--paper);
+  min-height: 100vh;
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.08);
+}
+
+.content {
+  padding: 36px 48px;
+}
+
+.footer {
+  padding: 24px 48px;
+  border-top: 2px solid var(--navy);
+  background: var(--blue-tint);
+}
+
+.disclaimer {
+  font-size: 10px;
+  color: var(--ink4);
+  line-height: 1.7;
+}
+
+.brand {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+@media (max-width: 700px) {
+  .content { padding: 24px 20px; }
+  .footer  { padding: 20px; }
+}

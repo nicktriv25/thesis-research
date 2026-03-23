@@ -1,0 +1,177 @@
+.section {
+  position: relative;
+  z-index: 10;
+  max-width: 860px;
+  margin: 20px auto 80px;
+  padding: 0 48px;
+  text-align: center;
+  animation: fade-up 0.8s ease 0.5s both;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--dim2);
+  margin-bottom: 20px;
+}
+
+.frame {
+  background: var(--paper);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+  transform: perspective(1200px) rotateX(2deg);
+  transition: transform 0.4s ease;
+  cursor: pointer;
+}
+
+.frame:hover {
+  transform: perspective(1200px) rotateX(0deg);
+}
+
+/* Header bar */
+.miniHeader {
+  background: #0c1e30;
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.miniBrand {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.miniDate {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Hero area */
+.miniHero {
+  padding: 24px 32px;
+  text-align: left;
+  border-bottom: 2px solid #0c1e30;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.miniLeft {}
+
+.miniExchange {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #2a5a8c;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.miniCompany {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.miniSector {
+  font-size: 12px;
+  color: var(--ink3);
+  margin-top: 4px;
+}
+
+/* Rating box */
+.miniRating {
+  text-align: center;
+  padding: 12px 20px;
+  border: 2px solid var(--buy);
+  border-radius: 4px;
+  background: var(--buy-bg);
+  flex-shrink: 0;
+}
+
+.miniRatingLabel {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--buy);
+  font-weight: 600;
+}
+
+.miniRatingAction {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--buy);
+}
+
+.miniRatingTarget {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--buy);
+}
+
+/* Metrics */
+.miniMetrics {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  border-bottom: 1px solid var(--rule);
+}
+
+.miniMetric {
+  padding: 10px 12px;
+  text-align: center;
+  border-right: 1px solid var(--rule);
+}
+
+.miniMetric:last-child {
+  border-right: none;
+}
+
+.miniMetricLabel {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ink4);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.miniMetricValue {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Fade / CTA */
+.miniFade {
+  height: 72px;
+  background: linear-gradient(to bottom, var(--paper), rgba(250, 249, 247, 0.5));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.miniCta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+@media (max-width: 700px) {
+  .section { padding: 0 20px; }
+  .miniMetrics { grid-template-columns: repeat(3, 1fr); }
+  .miniHeader { padding: 12px 20px; }
+  .miniHero { padding: 16px 20px; flex-direction: column; gap: 16px; }
+  .miniCompany { font-size: 22px; }
+}

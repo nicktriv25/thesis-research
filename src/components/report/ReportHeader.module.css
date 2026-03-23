@@ -1,0 +1,125 @@
+.header {
+  padding: 36px 48px 28px;
+  border-bottom: 2px solid var(--navy);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink4);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--ink4);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.identity {}
+
+.exchange {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: #2a5a8c;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.company {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+}
+
+.sector {
+  font-size: 14px;
+  color: var(--ink3);
+  margin-top: 6px;
+}
+
+/* Rating box */
+.ratingBox {
+  text-align: center;
+  padding: 16px 28px;
+  border-radius: 4px;
+  border: 2px solid;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.ratingLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.ratingAction {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.ratingTarget {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Rating variants */
+.buy {
+  border-color: var(--buy);
+  background: var(--buy-bg);
+}
+.buy .ratingLabel,
+.buy .ratingAction,
+.buy .ratingTarget {
+  color: var(--buy);
+}
+
+.hold {
+  border-color: var(--hold);
+  background: var(--hold-bg);
+}
+.hold .ratingLabel,
+.hold .ratingAction,
+.hold .ratingTarget {
+  color: var(--hold);
+}
+
+.sell {
+  border-color: var(--sell);
+  background: var(--sell-bg);
+}
+.sell .ratingLabel,
+.sell .ratingAction,
+.sell .ratingTarget {
+  color: var(--sell);
+}
+
+@media (max-width: 700px) {
+  .header { padding: 24px 20px; }
+  .top { flex-direction: column; }
+  .company { font-size: 28px; }
+  .ratingBox { min-width: unset; width: 100%; }
+}

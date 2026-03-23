@@ -1,0 +1,20 @@
+.wrap {
+  margin-bottom: 36px;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+
+.body {
+  font-size: 14px;
+  color: var(--ink2);
+  line-height: 1.78;
+  margin-top: 14px;
+}

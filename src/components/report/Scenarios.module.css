@@ -1,0 +1,95 @@
+.wrap {
+  margin-bottom: 36px;
+}
+
+.sectionTitle {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.card {
+  padding: 20px;
+  border-radius: 6px;
+  border: 1px solid;
+}
+
+.bull { background: #f0faf5; border-color: #b8e4cc; }
+.base { background: var(--blue-tint); border-color: #c8d8e8; }
+.bear { background: #fdf3f3; border-color: #e8c4c4; }
+
+.cardHeader {
+  margin-bottom: 12px;
+}
+
+.caseLabel {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.caseTarget {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-top: 4px;
+}
+
+.caseUpside {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.bull .caseUpside { color: var(--buy); }
+.base .caseUpside { color: #2a5a8c; }
+.bear .caseUpside { color: var(--sell); }
+
+.caseDesc {
+  font-size: 12px;
+  color: var(--ink2);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.assumptions {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.assumptions li {
+  font-size: 11px;
+  color: var(--ink3);
+  line-height: 1.5;
+  padding-left: 12px;
+  position: relative;
+}
+
+.assumptions li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--ink4);
+}
+
+@media (max-width: 700px) {
+  .grid { grid-template-columns: 1fr; }
+}

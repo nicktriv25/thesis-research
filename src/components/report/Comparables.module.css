@@ -1,0 +1,98 @@
+.wrap {
+  margin-bottom: 36px;
+}
+
+.sectionTitle {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 20px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table thead {
+  background: var(--blue-tint);
+}
+
+.table th {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--ink4);
+  padding: 10px 14px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--rule);
+}
+
+.thLeft {
+  text-align: left !important;
+}
+
+.table td {
+  padding: 11px 14px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover td {
+  background: var(--blue-tint);
+}
+
+.tdLeft {
+  text-align: left !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ticker {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.name {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--ink4);
+  font-weight: 400;
+}
+
+/* Highlighted row (the subject company) */
+.focusRow td {
+  background: rgba(42, 90, 140, 0.05) !important;
+  font-weight: 600;
+}
+
+.focusRow .ticker {
+  color: #2a5a8c;
+}
+
+/* Color coding */
+.positive { color: #0a6e3a !important; }
+.negative { color: #9a1b1b !important; }

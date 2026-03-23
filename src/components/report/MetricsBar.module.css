@@ -1,0 +1,45 @@
+.bar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  border-bottom: 1px solid var(--rule);
+}
+
+.metric {
+  padding: 14px 16px;
+  border-right: 1px solid var(--rule);
+  text-align: center;
+}
+
+.metric:last-child {
+  border-right: none;
+}
+
+.label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--ink4);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sub {
+  font-size: 10px;
+  color: var(--ink4);
+  margin-top: 2px;
+}
+
+@media (max-width: 700px) {
+  .bar { grid-template-columns: repeat(3, 1fr); }
+  .metric:nth-child(3) { border-right: none; }
+  .metric:nth-child(4),
+  .metric:nth-child(5),
+  .metric:nth-child(6) { border-top: 1px solid var(--rule); }
+}
