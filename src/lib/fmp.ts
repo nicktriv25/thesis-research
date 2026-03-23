@@ -19,6 +19,15 @@ async function fmpFetch<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** Like fmpFetch but returns null instead of throwing on non-2xx. */
+async function fmpFetchOptional<T>(path: string): Promise<T | null> {
+  try {
+    return await fmpFetch<T>(path)
+  } catch {
+    return null
+  }
+}
+
 // ─── Raw FMP stable response shapes ──────────────────────────────────────────
 
 interface FMPQuoteItem {
@@ -83,9 +92,9 @@ export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
   const [quotes, profiles, keyMetrics, ratios, growth] = await Promise.all([
     fmpFetch<FMPQuoteItem[]>(`/quote?symbol=${symbol}`),
     fmpFetch<FMPProfileItem[]>(`/profile?symbol=${symbol}`),
-    fmpFetch<FMPKeyMetricsTTMItem[]>(`/key-metrics-ttm?symbol=${symbol}`),
-    fmpFetch<FMPRatiosTTMItem[]>(`/ratios-ttm?symbol=${symbol}`),
-    fmpFetch<FMPFinancialGrowthItem[]>(`/financial-growth?symbol=${symbol}&limit=1`),
+    fmpFetchOptional<FMPKeyMetricsTTMItem[]>(`/key-metrics-ttm?symbol=${symbol}`),
+    fmpFetchOptional<FMPRatiosTTMItem[]>(`/ratios-ttm?symbol=${symbol}`),
+    fmpFetchOptional<FMPFinancialGrowthItem[]>(`/financial-growth?symbol=${symbol}&limit=1`),
   ])
 
   const q = quotes?.[0]
