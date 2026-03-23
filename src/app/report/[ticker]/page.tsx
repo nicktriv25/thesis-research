@@ -6,7 +6,6 @@ import ReportNav from '@/components/report/ReportNav'
 import ReportView from '@/components/report/ReportView'
 import ReportSkeleton from '@/components/report/ReportSkeleton'
 import type { TIEReport } from '@/lib/types'
-import { NVDA_REPORT } from '@/lib/sample-reports'
 import styles from './page.module.css'
 
 export default function ReportPage() {
@@ -24,21 +23,12 @@ export default function ReportPage() {
     setError(null)
     setReport(null)
 
-    // Session 1: serve NVDA from static data; all others hit the API route
-    if (ticker === 'NVDA') {
-      setTimeout(() => {
-        setReport(NVDA_REPORT)
-        setLoading(false)
-      }, 600) // slight delay to show the skeleton
-      return
-    }
-
-    // Session 3+: real TIE generation
     const controller = new AbortController()
 
+    // Session 2: all tickers fetch live data from FMP via the API route
     fetch(`/api/report/${ticker}`, { signal: controller.signal })
       .then(async res => {
-        if (!res.ok) throw new Error(`Failed to generate report for ${ticker}`)
+        if (!res.ok) throw new Error(`Failed to fetch data for ${ticker}`)
         return res.json() as Promise<TIEReport>
       })
       .then(data => {
