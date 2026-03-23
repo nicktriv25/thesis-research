@@ -1,9 +1,9 @@
 /**
- * Financial Modeling Prep API client
+ * Financial Modeling Prep API client (stable endpoints)
  * Fetches real stock quotes, company profiles, and key financial ratios.
  */
 
-const BASE_URL = 'https://financialmodelingprep.com/api/v3'
+const BASE_URL = 'https://financialmodelingprep.com/stable'
 
 function apiKey(): string {
   const key = process.env.FMP_API_KEY
@@ -19,17 +19,15 @@ async function fmpFetch<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
-// ─── Raw FMP response shapes ─────────────────────────────────────────────────
+// ─── Raw FMP stable response shapes ──────────────────────────────────────────
 
 interface FMPQuoteItem {
   symbol: string
   name: string
   price: number
   change: number
-  changesPercentage: number
+  changePercentage: number   // NOTE: not changesPercentage
   marketCap: number
-  pe: number | null
-  eps: number | null
   exchange: string
 }
 
@@ -38,25 +36,23 @@ interface FMPProfileItem {
   companyName: string
   sector: string
   industry: string
-  exchange: string
-  exchangeShortName: string
+  exchange: string           // short name e.g. "NASDAQ"
+  exchangeFullName: string
   currency: string
-  country: string
   description: string
-  mktCap: number
 }
 
 interface FMPKeyMetricsTTMItem {
-  peRatioTTM: number | null
   evToSalesTTM: number | null
-  evToFreeCashFlowTTM: number | null
 }
 
 interface FMPRatiosTTMItem {
   grossProfitMarginTTM: number | null
-  netProfitMarginTTM: number | null
-  priceEarningsRatioTTM: number | null
-  revenueGrowthTTM: number | null
+  priceToEarningsRatioTTM: number | null  // NOTE: not priceEarningsRatioTTM
+}
+
+interface FMPFinancialGrowthItem {
+  revenueGrowth: number | null
 }
 
 // ─── Our clean snapshot type ──────────────────────────────────────────────────
@@ -84,17 +80,19 @@ export interface StockSnapshot {
 export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
   const symbol = ticker.toUpperCase()
 
-  const [quotes, profiles, keyMetrics, ratios] = await Promise.all([
-    fmpFetch<FMPQuoteItem[]>(`/quote/${symbol}`),
-    fmpFetch<FMPProfileItem[]>(`/profile/${symbol}`),
-    fmpFetch<FMPKeyMetricsTTMItem[]>(`/key-metrics-ttm/${symbol}`),
-    fmpFetch<FMPRatiosTTMItem[]>(`/ratios-ttm/${symbol}`),
+  const [quotes, profiles, keyMetrics, ratios, growth] = await Promise.all([
+    fmpFetch<FMPQuoteItem[]>(`/quote?symbol=${symbol}`),
+    fmpFetch<FMPProfileItem[]>(`/profile?symbol=${symbol}`),
+    fmpFetch<FMPKeyMetricsTTMItem[]>(`/key-metrics-ttm?symbol=${symbol}`),
+    fmpFetch<FMPRatiosTTMItem[]>(`/ratios-ttm?symbol=${symbol}`),
+    fmpFetch<FMPFinancialGrowthItem[]>(`/financial-growth?symbol=${symbol}&limit=1`),
   ])
 
   const q = quotes?.[0]
   const p = profiles?.[0]
   const m = keyMetrics?.[0]
   const r = ratios?.[0]
+  const g = growth?.[0]
 
   if (!q) throw new Error(`No quote data for ${symbol}`)
   if (!p) throw new Error(`No profile data for ${symbol}`)
@@ -102,18 +100,18 @@ export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
   return {
     ticker: symbol,
     name: p.companyName || q.name,
-    exchange: p.exchangeShortName || p.exchange,
+    exchange: p.exchange,
     sector: p.sector || 'Unknown',
     industry: p.industry || 'Unknown',
     description: p.description || '',
     currency: p.currency || 'USD',
     price: q.price,
     change: q.change,
-    changePct: q.changesPercentage,
-    marketCap: q.marketCap || p.mktCap,
-    pe: q.pe ?? m?.peRatioTTM ?? r?.priceEarningsRatioTTM ?? null,
+    changePct: q.changePercentage,
+    marketCap: q.marketCap,
+    pe: r?.priceToEarningsRatioTTM ?? null,
     evToRevenue: m?.evToSalesTTM ?? null,
-    revenueGrowth: r?.revenueGrowthTTM ?? null,
+    revenueGrowth: g?.revenueGrowth ?? null,
     grossMargin: r?.grossProfitMarginTTM ?? null,
   }
 }
