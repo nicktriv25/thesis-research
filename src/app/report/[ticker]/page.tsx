@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import ReportNav from '@/components/report/ReportNav'
 import ReportView from '@/components/report/ReportView'
-import ReportSkeleton from '@/components/report/ReportSkeleton'
+import TIELoader from '@/components/report/TIELoader'
 import type { TIEReport } from '@/lib/types'
 import styles from './page.module.css'
 
@@ -48,7 +48,7 @@ export default function ReportPage() {
     <div className={styles.bg}>
       <ReportNav />
 
-      {loading && <ReportSkeleton ticker={ticker} />}
+      {loading && <TIELoader ticker={ticker} />}
 
       {error && (
         <div className={styles.error}>

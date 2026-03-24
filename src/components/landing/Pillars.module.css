@@ -12,15 +12,16 @@
 
 .pillar {
   padding: 28px 24px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
+  background: #fff;
+  border: 1px solid var(--rule);
   border-radius: 10px;
   transition: all 0.3s;
 }
 
 .pillar:hover {
-  border-color: var(--border2);
+  border-color: var(--ink4);
   transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.07);
 }
 
 .icon {
@@ -34,21 +35,21 @@
   margin-bottom: 16px;
 }
 
-.blue .icon  { background: rgba(91, 138, 245, 0.1); color: var(--accent); }
-.gold .icon  { background: rgba(201, 168, 76, 0.1);  color: var(--gold);   }
-.green .icon { background: rgba(52, 199, 123, 0.1);  color: var(--green);  }
+.blue .icon  { background: rgba(42, 90, 140, 0.08);  color: var(--accent);  }
+.gold .icon  { background: rgba(201, 168, 76, 0.1);   color: var(--gold);    }
+.green .icon { background: rgba(26, 122, 69, 0.08);   color: var(--green);   }
 
 .title {
   font-family: var(--font-sans);
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 8px;
-  color: #fff;
+  color: var(--ink);
 }
 
 .body {
   font-size: 13px;
-  color: var(--dim);
+  color: var(--ink3);
   line-height: 1.6;
 }
 

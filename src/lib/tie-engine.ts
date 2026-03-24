@@ -48,8 +48,8 @@ const TOOL_SCHEMA: Anthropic.Tool = {
     properties: {
       rating: {
         type: 'string',
-        enum: ['BUY', 'OUTPERFORM', 'HOLD', 'UNDERPERFORM', 'SELL'],
-        description: 'Analyst rating based on risk-adjusted return potential.',
+        enum: ['BUY', 'HOLD', 'SELL'],
+        description: 'Analyst rating: BUY (meaningful upside), HOLD (fairly valued), SELL (downside risk).',
       },
       priceTarget: {
         type: 'object',

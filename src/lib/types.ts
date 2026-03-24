@@ -1,4 +1,4 @@
-export type Rating = 'BUY' | 'HOLD' | 'SELL' | 'UNDERPERFORM' | 'OUTPERFORM'
+export type Rating = 'BUY' | 'HOLD' | 'SELL'
 
 export interface PriceTarget {
   base: number

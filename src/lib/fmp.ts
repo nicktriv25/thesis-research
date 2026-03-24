@@ -129,10 +129,12 @@ export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
 
 export function formatMarketCap(cap: number): string {
   if (!cap) return 'N/A'
-  if (cap >= 1e12) return `$${(cap / 1e12).toFixed(2)}T`
-  if (cap >= 1e9) return `$${(cap / 1e9).toFixed(1)}B`
-  if (cap >= 1e6) return `$${(cap / 1e6).toFixed(0)}M`
-  return `$${cap.toLocaleString()}`
+  // Normalize: FMP occasionally returns market cap in millions for some tickers
+  const raw = cap < 1e6 ? cap * 1e6 : cap
+  if (raw >= 1e12) return `$${(raw / 1e12).toFixed(1)}T`
+  if (raw >= 1e9)  return `$${(raw / 1e9).toFixed(1)}B`
+  if (raw >= 1e6)  return `$${(raw / 1e6).toFixed(0)}M`
+  return `$${raw.toLocaleString()}`
 }
 
 export function formatPct(value: number | null): string {

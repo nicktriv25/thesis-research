@@ -1,6 +1,7 @@
 .landing {
   min-height: 100vh;
   position: relative;
+  background: var(--paper);
 }
 
 /* Subtle dot-grid background */
@@ -8,41 +9,39 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(91, 138, 245, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(91, 138, 245, 0.03) 1px, transparent 1px);
+    linear-gradient(var(--rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rule) 1px, transparent 1px);
   background-size: 60px 60px;
+  opacity: 0.35;
   pointer-events: none;
   z-index: 0;
 }
 
-/* Radial accent glow */
+/* Radial fade to hide grid at edges */
 .glow {
   position: absolute;
-  top: -20%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 800px;
-  height: 800px;
-  background: radial-gradient(circle, rgba(91, 138, 245, 0.07) 0%, transparent 70%);
+  inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, var(--paper) 40%, transparent 100%);
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
 }
 
 /* Footer */
 .footer {
   position: relative;
   z-index: 10;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--rule);
   padding: 24px 48px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: var(--paper);
 }
 
 .footerBrand {
   font-family: var(--font-serif);
   font-size: 15px;
-  color: var(--dim2);
+  color: var(--ink4);
 }
 
 .footerLinks {
@@ -52,11 +51,11 @@
 
 .footerLink {
   font-size: 11px;
-  color: var(--dim2);
+  color: var(--ink4);
   transition: color 0.2s;
 }
 
-.footerLink:hover { color: var(--dim); }
+.footerLink:hover { color: var(--ink3); }
 
 @media (max-width: 700px) {
   .footer { padding: 20px; flex-direction: column; gap: 12px; }

@@ -5,18 +5,20 @@
   align-items: center;
   justify-content: space-between;
   padding: 24px 48px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
 }
 
 .logo {
   font-family: var(--font-serif);
   font-size: 28px;
   font-weight: 700;
-  color: #fff;
+  color: var(--ink);
   letter-spacing: -0.5px;
 }
 
 .logo span {
-  color: var(--dim2);
+  color: var(--ink4);
   font-weight: 400;
   font-size: 13px;
   margin-left: 8px;
@@ -38,19 +40,17 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 10px 20px;
-  background: var(--accent);
+  background: var(--navy);
   color: #fff;
   border-radius: 4px;
   transition: all 0.2s;
 }
 
 .cta:hover {
-  background: var(--accent2);
+  background: var(--ink);
   transform: translateY(-1px);
 }
 
 @media (max-width: 700px) {
-  .nav {
-    padding: 20px;
-  }
+  .nav { padding: 20px; }
 }

@@ -13,7 +13,7 @@
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--dim2);
+  color: var(--ink4);
   margin-bottom: 20px;
 }
 
@@ -21,7 +21,8 @@
   background: var(--paper);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--rule);
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.08);
   transform: perspective(1200px) rotateX(2deg);
   transition: transform 0.4s ease;
   cursor: pointer;
@@ -33,7 +34,7 @@
 
 /* Header bar */
 .miniHeader {
-  background: #0c1e30;
+  background: var(--navy);
   padding: 14px 32px;
   display: flex;
   align-items: center;
@@ -57,10 +58,11 @@
 .miniHero {
   padding: 24px 32px;
   text-align: left;
-  border-bottom: 2px solid #0c1e30;
+  border-bottom: 2px solid var(--navy);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  background: var(--paper);
 }
 
 .miniLeft {}
@@ -68,7 +70,7 @@
 .miniExchange {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: #2a5a8c;
+  color: var(--accent);
   letter-spacing: 1px;
   margin-bottom: 4px;
 }
@@ -122,6 +124,7 @@
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   border-bottom: 1px solid var(--rule);
+  background: var(--paper);
 }
 
 .miniMetric {

@@ -9,7 +9,7 @@
   font-family: var(--font-serif);
   font-size: 36px;
   font-weight: 700;
-  color: #fff;
+  color: var(--ink);
   margin-bottom: 24px;
 }
 
@@ -25,24 +25,25 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 16px;
-  color: var(--dim2);
+  color: var(--ink4);
   pointer-events: none;
 }
 
 .input {
   width: 100%;
   padding: 16px 20px 16px 48px;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
+  background: #fff;
+  border: 1.5px solid var(--rule);
   border-radius: 10px;
   font-family: var(--font-mono);
   font-size: 15px;
-  color: #fff;
+  color: var(--ink);
   outline: none;
   transition: border-color 0.3s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 }
 
-.input::placeholder { color: var(--dim2); }
+.input::placeholder { color: var(--ink4); }
 .input:focus { border-color: var(--accent); }
 
 @media (max-width: 700px) {

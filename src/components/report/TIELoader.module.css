@@ -1,0 +1,204 @@
+.wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  background: var(--paper);
+  min-height: calc(100vh - 52px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+}
+
+/* Engine badge */
+.engineRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.engineLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.engineDot {
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0.3;
+}
+
+/* Heading */
+.heading {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+}
+
+/* Ticker badge */
+.tickerBadge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(42, 90, 140, 0.07);
+  border: 1px solid rgba(42, 90, 140, 0.15);
+  padding: 4px 14px;
+  border-radius: 99px;
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+}
+
+/* Steps list */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  margin-bottom: 28px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--rule);
+  transition: background 0.3s;
+}
+
+.step:last-child {
+  border-bottom: none;
+}
+
+/* State: complete */
+.complete {
+  background: #fff;
+}
+
+/* State: active */
+.active {
+  background: rgba(42, 90, 140, 0.03);
+}
+
+/* State: pending */
+.pending {
+  opacity: 0.4;
+}
+
+/* Icon wrapper */
+.iconWrap {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Checkmark */
+.checkIcon {
+  width: 18px;
+  height: 18px;
+  color: var(--buy);
+}
+
+/* Spinner */
+.spinner {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(42, 90, 140, 0.15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Empty dot (pending) */
+.emptyDot {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--rule);
+  border-radius: 50%;
+}
+
+/* Step label */
+.stepLabel {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink2);
+  text-align: left;
+}
+
+.complete .stepLabel {
+  color: var(--ink3);
+}
+
+/* Active pulse dots */
+.activePulse {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.activePulse span {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-dot 1.2s ease infinite;
+}
+
+.activePulse span:nth-child(2) { animation-delay: 0.2s; }
+.activePulse span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Done tag */
+.doneTag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--buy);
+  background: var(--buy-bg);
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink4);
+}
+
+.sep {
+  opacity: 0.4;
+}

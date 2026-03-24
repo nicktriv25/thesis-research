@@ -2,7 +2,7 @@
   position: relative;
   z-index: 10;
   text-align: center;
-  padding: 100px 48px 60px;
+  padding: 80px 48px 60px;
   animation: fade-up 0.8s ease both;
 }
 
@@ -11,7 +11,7 @@
   font-size: 11px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--accent);
   font-weight: 600;
   margin-bottom: 20px;
   display: flex;
@@ -24,8 +24,8 @@
   display: block;
   width: 32px;
   height: 1px;
-  background: var(--gold);
-  opacity: 0.4;
+  background: var(--accent);
+  opacity: 0.3;
 }
 
 .h1 {
@@ -33,7 +33,7 @@
   font-size: 64px;
   font-weight: 700;
   line-height: 1.08;
-  color: #fff;
+  color: var(--ink);
   letter-spacing: -1px;
   max-width: 700px;
   margin: 0 auto 20px;
@@ -41,12 +41,12 @@
 
 .h1 em {
   font-style: italic;
-  color: var(--accent2);
+  color: var(--accent);
 }
 
 .sub {
   font-size: 17px;
-  color: var(--dim);
+  color: var(--ink3);
   line-height: 1.6;
   max-width: 520px;
   margin: 0 auto 40px;
@@ -64,28 +64,28 @@
   left: 20px;
   top: 24px;
   font-size: 18px;
-  color: var(--dim2);
+  color: var(--ink4);
   pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
   padding: 18px 24px 18px 52px;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
+  background: #fff;
+  border: 1.5px solid var(--rule);
   border-radius: 12px;
   font-family: var(--font-mono);
   font-size: 16px;
-  color: #fff;
+  color: var(--ink);
   outline: none;
   transition: all 0.3s;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
 }
 
-.searchInput::placeholder { color: var(--dim2); }
+.searchInput::placeholder { color: var(--ink4); }
 .searchInput:focus {
   border-color: var(--accent);
-  box-shadow: 0 4px 32px rgba(91, 138, 245, 0.15);
+  box-shadow: 0 4px 24px rgba(42, 90, 140, 0.12);
 }
 
 /* Dropdown */
@@ -94,12 +94,12 @@
   top: calc(100% - 28px);
   left: 0;
   right: 0;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
+  background: #fff;
+  border: 1.5px solid var(--rule);
   border-top: none;
   border-radius: 0 0 10px 10px;
   overflow: hidden;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
   z-index: 50;
 }
 
@@ -109,11 +109,11 @@
   gap: 14px;
   padding: 12px 20px;
   cursor: pointer;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--rule);
   transition: background 0.15s;
 }
 
-.result:hover { background: var(--bg4); }
+.result:hover { background: var(--paper2); }
 
 .rTicker {
   font-family: var(--font-mono);
@@ -126,7 +126,7 @@
 
 .rName {
   font-size: 13px;
-  color: var(--dim);
+  color: var(--ink3);
   flex: 1;
   text-align: left;
 }
@@ -145,17 +145,18 @@
   margin-top: 10px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--dim2);
+  color: var(--ink4);
 }
 
 .hint kbd {
-  background: var(--bg4);
-  border: 1px solid var(--border);
+  background: var(--paper2);
+  border: 1px solid var(--rule);
   padding: 1px 6px;
   border-radius: 3px;
   font-size: 10px;
   margin: 0 2px;
   font-family: var(--font-mono);
+  color: var(--ink3);
 }
 
 @media (max-width: 700px) {
