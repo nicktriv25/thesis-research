@@ -24,11 +24,11 @@ export default function LandingPage() {
       <EarningsCalendar />
 
       <footer className={styles.footer}>
-        <span className={styles.footerBrand}>Thesis Research © 2026</span>
+        <span className={styles.footerBrand}>Thesis © 2026</span>
         <div className={styles.footerLinks}>
           <a href="/about" className={styles.footerLink}>About</a>
-          <a href="#" className={styles.footerLink}>Terms</a>
-          <a href="#" className={styles.footerLink}>Privacy</a>
+          <a href="/terms" className={styles.footerLink}>Terms</a>
+          <a href="/privacy" className={styles.footerLink}>Privacy</a>
         </div>
       </footer>
     </div>

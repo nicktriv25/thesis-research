@@ -49,7 +49,7 @@ export default function EarningsCalendar() {
             <p className={styles.range}>{formatDateRange(data.from, data.to)}</p>
           )}
         </div>
-        <p className={styles.hint}>Click any company to generate a TIE report</p>
+        <p className={styles.hint}>Click any company to generate a report</p>
       </div>
 
       {loading && (

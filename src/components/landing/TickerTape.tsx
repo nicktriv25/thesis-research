@@ -20,9 +20,6 @@ export default function TickerTape() {
             >
               <span className={styles.ticker}>{t.t}</span>
               <span className={styles.name}>{t.n}</span>
-              <span className={`${styles.change} ${t.up ? styles.up : styles.down}`}>
-                {t.c}
-              </span>
             </div>
           ))}
         </div>

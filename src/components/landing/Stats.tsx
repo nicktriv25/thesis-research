@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import styles from './Stats.module.css'
 
-function AnimatedNumber({ target, duration = 1500 }: { target: number; duration?: number }) {
+function AnimatedNumber({ target, duration = 1500, suffix = '' }: { target: number; duration?: number; suffix?: string }) {
   const [value, setValue] = useState(0)
   const ref = useRef<HTMLSpanElement>(null)
   const started = useRef(false)
@@ -31,7 +31,7 @@ function AnimatedNumber({ target, duration = 1500 }: { target: number; duration?
     return () => observer.disconnect()
   }, [target, duration])
 
-  return <span ref={ref}>{value.toLocaleString()}</span>
+  return <span ref={ref}>{value.toLocaleString()}{suffix}</span>
 }
 
 export default function Stats() {
@@ -39,12 +39,14 @@ export default function Stats() {
     <div className={styles.stats}>
       <div className={styles.item}>
         <div className={styles.num}>
-          <AnimatedNumber target={12847} />
+          <AnimatedNumber target={592} />
         </div>
         <div className={styles.label}>Reports Generated</div>
       </div>
       <div className={styles.item}>
-        <div className={styles.num}>4,200+</div>
+        <div className={styles.num}>
+          <AnimatedNumber target={200} suffix="+" />
+        </div>
         <div className={styles.label}>Tickers Covered</div>
       </div>
       <div className={styles.item}>
