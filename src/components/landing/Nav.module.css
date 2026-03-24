@@ -15,40 +15,42 @@
   font-weight: 700;
   color: var(--ink);
   letter-spacing: -0.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
 }
 
 .logo span {
+  font-family: var(--font-mono);
+  font-size: 10px;
   color: var(--ink4);
   font-weight: 400;
-  font-size: 13px;
-  margin-left: 8px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  vertical-align: middle;
+  letter-spacing: 0.5px;
+  text-transform: none;
 }
 
 .links {
   display: flex;
-  gap: 32px;
+  gap: 16px;
   align-items: center;
 }
 
-.cta {
+.about {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 10px 20px;
-  background: var(--navy);
-  color: #fff;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  padding: 8px 18px;
+  border: 1px solid var(--rule);
   border-radius: 4px;
+  color: var(--ink3);
   transition: all 0.2s;
+  background: transparent;
 }
 
-.cta:hover {
-  background: var(--ink);
-  transform: translateY(-1px);
+.about:hover {
+  border-color: var(--ink3);
+  color: var(--ink);
 }
 
 @media (max-width: 700px) {

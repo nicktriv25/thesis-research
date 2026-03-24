@@ -1,23 +1,42 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { searchTickers, type Ticker } from '@/lib/tickers'
 import styles from './ReportNav.module.css'
+
+interface SearchResult {
+  t: string
+  n: string
+  exchange: string
+}
 
 export default function ReportNav() {
   const router = useRouter()
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<Ticker[]>([])
+  const [results, setResults] = useState<SearchResult[]>([])
   const [open, setOpen] = useState(false)
+  const controllerRef = useRef<AbortController | null>(null)
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const q = e.target.value.toUpperCase()
-    setQuery(q)
-    const r = searchTickers(q)
-    setResults(r)
-    setOpen(r.length > 0 && q.length > 0)
-  }
+  useEffect(() => {
+    const q = query.trim()
+    if (!q) { setResults([]); setOpen(false); return }
+
+    const timer = setTimeout(() => {
+      controllerRef.current?.abort()
+      const controller = new AbortController()
+      controllerRef.current = controller
+
+      fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+        .then(r => r.json())
+        .then((data: SearchResult[]) => {
+          setResults(data)
+          setOpen(data.length > 0)
+        })
+        .catch(() => {})
+    }, 220)
+
+    return () => clearTimeout(timer)
+  }, [query])
 
   const navigate = (ticker: string) => {
     setQuery('')
@@ -28,7 +47,7 @@ export default function ReportNav() {
   return (
     <nav className={styles.nav}>
       <span className={styles.brand} onClick={() => router.push('/')}>
-        Thesis<span>research</span>
+        Thesis<span>Powered by TIE</span>
       </span>
 
       <div className={styles.divider} />
@@ -38,9 +57,9 @@ export default function ReportNav() {
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="Search ticker..."
+          placeholder="Search any ticker..."
           value={query}
-          onChange={handleInput}
+          onChange={e => setQuery(e.target.value.toUpperCase())}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           autoComplete="off"
           spellCheck={false}

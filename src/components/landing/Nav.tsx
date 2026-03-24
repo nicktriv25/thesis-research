@@ -1,20 +1,19 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import styles from './Nav.module.css'
 
-interface NavProps {
-  onCTAClick: () => void
-}
+export default function Nav() {
+  const router = useRouter()
 
-export default function Nav({ onCTAClick }: NavProps) {
   return (
     <nav className={styles.nav}>
       <div className={styles.logo}>
-        Thesis<span>research</span>
+        Thesis<span>Powered by TIE</span>
       </div>
       <div className={styles.links}>
-        <button className={styles.cta} onClick={onCTAClick}>
-          Generate Report
+        <button className={styles.about} onClick={() => router.push('/about')}>
+          About
         </button>
       </div>
     </nav>

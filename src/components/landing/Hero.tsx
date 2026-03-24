@@ -2,25 +2,37 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { searchTickers, type Ticker } from '@/lib/tickers'
 import styles from './Hero.module.css'
 
-interface HeroProps {
-  searchRef?: React.RefObject<HTMLInputElement | null>
+interface SearchResult {
+  t: string
+  n: string
+  exchange: string
 }
 
-export default function Hero({ searchRef }: HeroProps) {
+export default function Hero() {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<Ticker[]>([])
+  const [results, setResults] = useState<SearchResult[]>([])
   const [open, setOpen] = useState(false)
   const router = useRouter()
-  const internalRef = useRef<HTMLInputElement>(null)
-  const inputRef = searchRef || internalRef
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const r = searchTickers(query)
-    setResults(r)
-    setOpen(r.length > 0 && query.length > 0)
+    const q = query.trim()
+    if (!q) { setResults([]); setOpen(false); return }
+
+    const controller = new AbortController()
+    const timer = setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+        .then(r => r.json())
+        .then((data: SearchResult[]) => {
+          setResults(data)
+          setOpen(data.length > 0)
+        })
+        .catch(() => {})
+    }, 220)
+
+    return () => { clearTimeout(timer); controller.abort() }
   }, [query])
 
   const navigate = (ticker: string) => {

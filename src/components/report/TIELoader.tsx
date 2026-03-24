@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import styles from './TIELoader.module.css'
 
 const STEPS = [
-  { label: 'Fetching market data',     activateAt: 0,     completeAt: 2200  },
-  { label: 'Analyzing financials',     activateAt: 2200,  completeAt: 5500  },
-  { label: 'Writing investment thesis', activateAt: 5500,  completeAt: 13000 },
-  { label: 'Building DCF model',       activateAt: 13000, completeAt: 99999 },
+  { label: 'Fetching market data',      activateAt: 0,    completeAt: 2000  },
+  { label: 'Analyzing financials',      activateAt: 2000, completeAt: 4000  },
+  { label: 'Writing investment thesis', activateAt: 4000, completeAt: 6000  },
+  { label: 'Building DCF model',        activateAt: 6000, completeAt: 99999 },
 ]
 
 interface Props {
@@ -26,12 +26,6 @@ export default function TIELoader({ ticker }: Props) {
   return (
     <div className={styles.wrap}>
       <div className={styles.card}>
-
-        <div className={styles.engineRow}>
-          <span className={styles.engineDot} />
-          <span className={styles.engineLabel}>TIE ENGINE</span>
-          <span className={styles.engineDot} />
-        </div>
 
         <h1 className={styles.heading}>Generating Report</h1>
         <div className={styles.tickerBadge}>{ticker}</div>
