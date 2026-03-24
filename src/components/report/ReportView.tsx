@@ -5,6 +5,7 @@ import NarrativeSection from './NarrativeSection'
 import DCFSummary from './DCFSummary'
 import Scenarios from './Scenarios'
 import Comparables from './Comparables'
+import NewsSection from './NewsSection'
 import styles from './ReportView.module.css'
 
 interface Props {
@@ -27,6 +28,7 @@ export default function ReportView({ report }: Props) {
 
         <NarrativeSection section={report.financialAnalysis} />
         <NarrativeSection section={report.riskFactors} />
+        <NewsSection news={report.news ?? []} />
       </div>
 
       <footer className={styles.footer}>

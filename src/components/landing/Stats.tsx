@@ -35,11 +35,20 @@ function AnimatedNumber({ target, duration = 1500, suffix = '' }: { target: numb
 }
 
 export default function Stats() {
+  const [reportsCount, setReportsCount] = useState(592)
+
+  useEffect(() => {
+    fetch('/api/counter')
+      .then(r => r.json())
+      .then(data => { if (typeof data.count === 'number') setReportsCount(data.count) })
+      .catch(() => {/* keep default */})
+  }, [])
+
   return (
     <div className={styles.stats}>
       <div className={styles.item}>
         <div className={styles.num}>
-          <AnimatedNumber target={592} />
+          <AnimatedNumber target={reportsCount} />
         </div>
         <div className={styles.label}>Reports Generated</div>
       </div>

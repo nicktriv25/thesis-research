@@ -57,6 +57,13 @@ export interface ReportSection {
   content: string  // markdown-compatible prose
 }
 
+export interface NewsItem {
+  headline: string
+  source: string
+  date: string   // ISO date string
+  url: string
+}
+
 export interface TIEReport {
   // Identity
   ticker: string
@@ -84,6 +91,9 @@ export interface TIEReport {
   dcf: DCFOutput
   scenarios: ScenarioCase[]
   comparables: Comparable[]
+
+  // Recent news (may be empty if FMP returns nothing)
+  news: NewsItem[]
 }
 
 // Placeholder / loading state

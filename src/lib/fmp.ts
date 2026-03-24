@@ -33,10 +33,34 @@ export class FMPNotFoundError extends Error {
   }
 }
 
-async function fmpFetch<T>(path: string): Promise<T> {
+/**
+ * Error thrown when FMP rate-limits the request (HTTP 429).
+ * The free tier shares a request budget; popular tickers like AMZN exhaust
+ * it faster when multiple users are concurrent, or when the 5-call Promise.all
+ * bursts past the per-second cap.
+ */
+export class FMPRateLimitError extends Error {
+  constructor() {
+    super('FMP rate limit reached — please try again in a moment')
+    this.name = 'FMPRateLimitError'
+  }
+}
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+
+async function fmpFetch<T>(path: string, attempt = 0): Promise<T> {
   const sep = path.includes('?') ? '&' : '?'
   const url = `${BASE_URL}${path}${sep}apikey=${apiKey()}`
   const res = await fetch(url, { next: { revalidate: 300 } })
+
+  // Rate limited — retry up to 2 times with exponential backoff (2 s, 4 s)
+  if (res.status === 429) {
+    if (attempt < 2) {
+      await sleep(2000 * (attempt + 1))
+      return fmpFetch<T>(path, attempt + 1)
+    }
+    throw new FMPRateLimitError()
+  }
 
   // Hard HTTP errors
   if (res.status === 401) throw new FMPPlanError('Invalid FMP API key')
@@ -71,8 +95,9 @@ async function fmpFetchOptional<T>(path: string): Promise<T | null> {
   try {
     return await fmpFetch<T>(path)
   } catch (err) {
-    // Propagate plan errors so callers can surface them to the user
+    // Propagate plan and rate-limit errors so callers can surface them to the user
     if (err instanceof FMPPlanError) throw err
+    if (err instanceof FMPRateLimitError) throw err
     return null
   }
 }
@@ -138,12 +163,17 @@ export interface StockSnapshot {
 export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
   const symbol = ticker.toUpperCase()
 
-  const [quotes, profiles, keyMetrics, ratios, growth] = await Promise.all([
+  // Fetch required data first, then stagger optional enrichment calls to avoid
+  // bursting the free-tier rate limit (especially for high-traffic tickers like AMZN)
+  const [quotes, profiles] = await Promise.all([
     fmpFetch<FMPQuoteItem[]>(`/quote?symbol=${symbol}`),
     fmpFetch<FMPProfileItem[]>(`/profile?symbol=${symbol}`),
+  ])
+
+  const [keyMetrics, ratios, growth] = await Promise.all([
     fmpFetchOptional<FMPKeyMetricsTTMItem[]>(`/key-metrics-ttm?symbol=${symbol}`),
-    fmpFetchOptional<FMPRatiosTTMItem[]>(`/ratios-ttm?symbol=${symbol}`),
-    fmpFetchOptional<FMPFinancialGrowthItem[]>(`/financial-growth?symbol=${symbol}&limit=1`),
+    sleep(150).then(() => fmpFetchOptional<FMPRatiosTTMItem[]>(`/ratios-ttm?symbol=${symbol}`)),
+    sleep(300).then(() => fmpFetchOptional<FMPFinancialGrowthItem[]>(`/financial-growth?symbol=${symbol}&limit=1`)),
   ])
 
   const q = quotes?.[0]
@@ -170,6 +200,40 @@ export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
     evToRevenue: m?.evToSalesTTM ?? null,
     revenueGrowth: g?.revenueGrowth ?? null,
     grossMargin: r?.grossProfitMarginTTM ?? null,
+  }
+}
+
+// ─── News ─────────────────────────────────────────────────────────────────────
+
+interface FMPNewsItem {
+  title: string
+  site: string
+  publishedDate: string
+  url: string
+}
+
+export interface StockNewsItem {
+  headline: string
+  source: string
+  date: string
+  url: string
+}
+
+export async function getStockNews(ticker: string): Promise<StockNewsItem[]> {
+  const symbol = ticker.toUpperCase()
+  try {
+    const items = await fmpFetch<FMPNewsItem[]>(
+      `/stock-news?tickers=${symbol}&limit=5`
+    )
+    if (!Array.isArray(items)) return []
+    return items.map(item => ({
+      headline: item.title,
+      source: item.site,
+      date: item.publishedDate,
+      url: item.url,
+    }))
+  } catch {
+    return []
   }
 }
 

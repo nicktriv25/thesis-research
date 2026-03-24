@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   getStockSnapshot,
+  getStockNews,
   formatMarketCap,
   formatPct,
   formatMultiple,
   FMPPlanError,
   FMPNotFoundError,
+  FMPRateLimitError,
   type StockSnapshot,
 } from '@/lib/fmp'
 import { generateTIEAnalysis } from '@/lib/tie-engine'
+import { incrementCount } from '@/lib/counter'
 import type { TIEReport, KeyMetric } from '@/lib/types'
 
 /**
@@ -50,8 +53,11 @@ export async function GET(
   }
 
   try {
-    // Step 1: Fetch live market data from FMP
-    const snap = await getStockSnapshot(symbol)
+    // Step 1: Fetch live market data + news from FMP (news is best-effort)
+    const [snap, news] = await Promise.all([
+      getStockSnapshot(symbol),
+      getStockNews(symbol),
+    ])
 
     // Step 2: Generate full analysis via TIE Engine (Claude)
     const tie = await generateTIEAnalysis(snap)
@@ -105,7 +111,13 @@ export async function GET(
 
       // Comparables from TIE Engine (subject co. uses live FMP data for first row)
       comparables: tie.comparables,
+
+      // Recent news from FMP
+      news,
     }
+
+    // Increment the report counter on success
+    incrementCount()
 
     return NextResponse.json(report)
   } catch (err) {
@@ -122,6 +134,12 @@ export async function GET(
       return NextResponse.json(
         { code: 'not_found', error: `No market data found for ${symbol}. Verify the ticker symbol is correct and the company is actively traded.` },
         { status: 404 }
+      )
+    }
+    if (err instanceof FMPRateLimitError) {
+      return NextResponse.json(
+        { code: 'rate_limited', error: `Rate limited fetching data for ${symbol} — please try again in a moment.` },
+        { status: 429 }
       )
     }
     return NextResponse.json(

@@ -67,22 +67,22 @@ const TOOL_SCHEMA: Anthropic.Tool = {
       investmentThesis: {
         type: 'string',
         description:
-          '3–5 paragraph institutional-quality investment thesis. Cover the key catalyst, competitive moat, valuation setup, and why now. Write in the voice of a senior sell-side analyst.',
+          'Exactly 3 paragraphs separated by \\n\\n. Para 1: core thesis and primary catalyst with specific numbers. Para 2: competitive moat and key differentiator. Para 3: valuation setup and why now. Be precise — cite actual margins, multiples, and growth rates. No filler.',
       },
       businessOverview: {
         type: 'string',
         description:
-          '2–3 paragraph business overview covering revenue model, segment breakdown, go-to-market, and key operational drivers.',
+          'Exactly 3 paragraphs separated by \\n\\n. Para 1: core business model and revenue segments with percentages. Para 2: go-to-market and key operational drivers. Para 3: competitive positioning and moat. Be specific.',
       },
       financialAnalysis: {
         type: 'string',
         description:
-          '2–4 paragraph financial analysis covering revenue trajectory, margin profile, cash flow quality, and balance sheet. Reference specific numbers from the provided metrics.',
+          'Exactly 3 paragraphs separated by \\n\\n. Para 1: revenue trajectory with specific growth rates from provided metrics. Para 2: margin profile and FCF quality (cite the actual figures). Para 3: balance sheet and capital allocation. No generic filler.',
       },
       riskFactors: {
         type: 'string',
         description:
-          '3–5 paragraph risk factors section covering competitive, regulatory, macro, and company-specific risks. Be specific and quantify where possible.',
+          'Exactly 3 paragraphs separated by \\n\\n. Para 1: competitive and market-share risks. Para 2: regulatory, macro, and valuation risks. Para 3: company-specific execution risks. Quantify each risk where possible.',
       },
       dcf: {
         type: 'object',
@@ -198,7 +198,7 @@ ${snap.description || `${snap.name} operates in the ${snap.sector} sector (${sna
 3. For the DCF, model 5 years of explicit projections in billions USD. Base your revenue CAGR on the company's historical growth rate and sector dynamics.
 4. For comparables, include the subject company first (use the live data above), then add 4–6 relevant sector peers from your training knowledge.
 5. Price targets should be specific and grounded in your DCF + scenario analysis.
-6. Write at least 3 substantive paragraphs for each narrative section.`
+6. Each narrative section must be exactly 3 paragraphs, separated by \\n\\n. Be concise and specific — cite real numbers. No padding or vague generalities.`
 }
 
 export async function generateTIEAnalysis(snap: StockSnapshot): Promise<TIEAnalysis> {

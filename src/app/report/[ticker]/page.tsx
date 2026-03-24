@@ -9,7 +9,7 @@ import type { TIEReport } from '@/lib/types'
 import styles from './page.module.css'
 
 interface ReportError {
-  code: 'plan_restricted' | 'not_found' | 'internal' | 'unknown'
+  code: 'plan_restricted' | 'not_found' | 'rate_limited' | 'internal' | 'unknown'
   message: string
 }
 
@@ -65,6 +65,9 @@ export default function ReportPage() {
     if (e.code === 'not_found') {
       return `No market data found for ${ticker}. Check the ticker symbol is correct and the company is actively traded.`
     }
+    if (e.code === 'rate_limited') {
+      return `Rate limited — please wait a moment and try again for ${ticker}.`
+    }
     return `We couldn't generate a report for ${ticker}.`
   }
 
@@ -78,7 +81,7 @@ export default function ReportPage() {
         <div className={styles.error}>
           <div className={styles.errorInner}>
             <div className={styles.errorCode}>
-              {error.code === 'plan_restricted' ? '402' : error.code === 'not_found' ? '404' : '500'}
+              {error.code === 'plan_restricted' ? '402' : error.code === 'not_found' ? '404' : error.code === 'rate_limited' ? '429' : '500'}
             </div>
             <h1 className={styles.errorTitle}>Report unavailable</h1>
             <p className={styles.errorBody}>{errorBody(error)}</p>
