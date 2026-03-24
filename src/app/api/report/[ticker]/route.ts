@@ -4,6 +4,8 @@ import {
   formatMarketCap,
   formatPct,
   formatMultiple,
+  FMPPlanError,
+  FMPNotFoundError,
   type StockSnapshot,
 } from '@/lib/fmp'
 import { generateTIEAnalysis } from '@/lib/tie-engine'
@@ -40,7 +42,7 @@ export async function GET(
   const { ticker } = await params
   const symbol = ticker.toUpperCase()
 
-  if (!/^[A-Z]{1,5}$/.test(symbol)) {
+  if (!/^[A-Z]{1,6}(\.[A-Z]{1,2})?$/.test(symbol)) {
     return NextResponse.json(
       { error: `Invalid ticker symbol: ${symbol}` },
       { status: 400 }
@@ -108,9 +110,22 @@ export async function GET(
     return NextResponse.json(report)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error(`[report/${symbol}]`, message)
+    console.error(`[report/${symbol}]`, err instanceof Error ? err.name : 'Error', message)
+
+    if (err instanceof FMPPlanError) {
+      return NextResponse.json(
+        { code: 'plan_restricted', error: `Data unavailable for ${symbol} on the free data plan. This ticker may require a premium FMP subscription.` },
+        { status: 402 }
+      )
+    }
+    if (err instanceof FMPNotFoundError) {
+      return NextResponse.json(
+        { code: 'not_found', error: `No market data found for ${symbol}. Verify the ticker symbol is correct and the company is actively traded.` },
+        { status: 404 }
+      )
+    }
     return NextResponse.json(
-      { error: `Failed to generate report for ${symbol}: ${message}` },
+      { code: 'internal', error: `Failed to generate report for ${symbol}. ${message}` },
       { status: 500 }
     )
   }

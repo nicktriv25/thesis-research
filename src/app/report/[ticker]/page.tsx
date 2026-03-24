@@ -8,13 +8,18 @@ import TIELoader from '@/components/report/TIELoader'
 import type { TIEReport } from '@/lib/types'
 import styles from './page.module.css'
 
+interface ReportError {
+  code: 'plan_restricted' | 'not_found' | 'internal' | 'unknown'
+  message: string
+}
+
 export default function ReportPage() {
   const params = useParams()
   const ticker = (params?.ticker as string ?? '').toUpperCase()
 
   const [report, setReport] = useState<TIEReport | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ReportError | null>(null)
 
   useEffect(() => {
     if (!ticker) return
@@ -25,10 +30,16 @@ export default function ReportPage() {
 
     const controller = new AbortController()
 
-    // Session 2: all tickers fetch live data from FMP via the API route
     fetch(`/api/report/${ticker}`, { signal: controller.signal })
       .then(async res => {
-        if (!res.ok) throw new Error(`Failed to fetch data for ${ticker}`)
+        if (!res.ok) {
+          // Read the actual error from the API response body
+          const body = await res.json().catch(() => ({}))
+          const code = body.code ?? 'unknown'
+          const message = body.error ?? `Failed to fetch report for ${ticker}`
+          const err = Object.assign(new Error(message), { code })
+          throw err
+        }
         return res.json() as Promise<TIEReport>
       })
       .then(data => {
@@ -37,12 +48,25 @@ export default function ReportPage() {
       })
       .catch(err => {
         if (err.name === 'AbortError') return
-        setError(err.message)
+        setError({
+          code: err.code ?? 'unknown',
+          message: err.message,
+        })
         setLoading(false)
       })
 
     return () => controller.abort()
   }, [ticker])
+
+  function errorBody(e: ReportError): string {
+    if (e.code === 'plan_restricted') {
+      return `Data unavailable for ${ticker} on the free data plan. Some tickers require a premium FMP subscription.`
+    }
+    if (e.code === 'not_found') {
+      return `No market data found for ${ticker}. Check the ticker symbol is correct and the company is actively traded.`
+    }
+    return `We couldn't generate a report for ${ticker}.`
+  }
 
   return (
     <div className={styles.bg}>
@@ -53,13 +77,12 @@ export default function ReportPage() {
       {error && (
         <div className={styles.error}>
           <div className={styles.errorInner}>
-            <div className={styles.errorCode}>404</div>
+            <div className={styles.errorCode}>
+              {error.code === 'plan_restricted' ? '402' : error.code === 'not_found' ? '404' : '500'}
+            </div>
             <h1 className={styles.errorTitle}>Report unavailable</h1>
-            <p className={styles.errorBody}>
-              We couldn&apos;t generate a report for <strong>{ticker}</strong>.
-              This ticker may not be publicly traded, or TIE may not have sufficient data.
-            </p>
-            <p className={styles.errorNote}>{error}</p>
+            <p className={styles.errorBody}>{errorBody(error)}</p>
+            <p className={styles.errorNote}>{error.message}</p>
           </div>
         </div>
       )}

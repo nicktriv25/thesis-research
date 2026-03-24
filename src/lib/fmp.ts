@@ -11,19 +11,68 @@ function apiKey(): string {
   return key
 }
 
+/**
+ * Error thrown when FMP blocks a request due to subscription limits.
+ * Lets callers distinguish plan issues from bad tickers or network errors.
+ */
+export class FMPPlanError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'FMPPlanError'
+  }
+}
+
+/**
+ * Error thrown when FMP returns no data for a ticker (empty array).
+ * Indicates the ticker is unknown to FMP, not a plan issue.
+ */
+export class FMPNotFoundError extends Error {
+  constructor(ticker: string) {
+    super(`No data found for ${ticker}`)
+    this.name = 'FMPNotFoundError'
+  }
+}
+
 async function fmpFetch<T>(path: string): Promise<T> {
   const sep = path.includes('?') ? '&' : '?'
   const url = `${BASE_URL}${path}${sep}apikey=${apiKey()}`
-  const res = await fetch(url, { next: { revalidate: 300 } }) // cache 5 min
-  if (!res.ok) throw new Error(`FMP API ${res.status} for ${path}`)
-  return res.json() as Promise<T>
+  const res = await fetch(url, { next: { revalidate: 300 } })
+
+  // Hard HTTP errors
+  if (res.status === 401) throw new FMPPlanError('Invalid FMP API key')
+  if (res.status === 403) throw new FMPPlanError('FMP endpoint requires a higher subscription tier')
+  if (!res.ok) throw new Error(`FMP HTTP ${res.status} for ${path}`)
+
+  const data = await res.json()
+
+  // FMP returns 200 with {"Error Message": "..."} for plan/rate-limit issues
+  if (data && typeof data === 'object' && !Array.isArray(data)) {
+    const msg: string | undefined = data['Error Message'] ?? data['message'] ?? data['error']
+    if (msg) {
+      const lower = msg.toLowerCase()
+      if (
+        lower.includes('subscription') ||
+        lower.includes('upgrade') ||
+        lower.includes('not available under your current') ||
+        lower.includes('limit reach') ||
+        lower.includes('rate limit')
+      ) {
+        throw new FMPPlanError(msg)
+      }
+      throw new Error(`FMP error: ${msg}`)
+    }
+  }
+
+  return data as T
 }
 
-/** Like fmpFetch but returns null instead of throwing on non-2xx. */
+/** Like fmpFetch but returns null on any error (used for optional enrichment data). */
 async function fmpFetchOptional<T>(path: string): Promise<T | null> {
   try {
     return await fmpFetch<T>(path)
-  } catch {
+  } catch (err) {
+    // Propagate plan errors so callers can surface them to the user
+    if (err instanceof FMPPlanError) throw err
     return null
   }
 }
@@ -35,7 +84,7 @@ interface FMPQuoteItem {
   name: string
   price: number
   change: number
-  changePercentage: number   // NOTE: not changesPercentage
+  changePercentage: number
   marketCap: number
   exchange: string
 }
@@ -45,7 +94,7 @@ interface FMPProfileItem {
   companyName: string
   sector: string
   industry: string
-  exchange: string           // short name e.g. "NASDAQ"
+  exchange: string
   exchangeFullName: string
   currency: string
   description: string
@@ -57,7 +106,7 @@ interface FMPKeyMetricsTTMItem {
 
 interface FMPRatiosTTMItem {
   grossProfitMarginTTM: number | null
-  priceToEarningsRatioTTM: number | null  // NOTE: not priceEarningsRatioTTM
+  priceToEarningsRatioTTM: number | null
 }
 
 interface FMPFinancialGrowthItem {
@@ -103,8 +152,7 @@ export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
   const r = ratios?.[0]
   const g = growth?.[0]
 
-  if (!q) throw new Error(`No quote data for ${symbol}`)
-  if (!p) throw new Error(`No profile data for ${symbol}`)
+  if (!q || !p) throw new FMPNotFoundError(symbol)
 
   return {
     ticker: symbol,
@@ -129,7 +177,6 @@ export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
 
 export function formatMarketCap(cap: number): string {
   if (!cap) return 'N/A'
-  // Normalize: FMP occasionally returns market cap in millions for some tickers
   const raw = cap < 1e6 ? cap * 1e6 : cap
   if (raw >= 1e12) return `$${(raw / 1e12).toFixed(1)}T`
   if (raw >= 1e9)  return `$${(raw / 1e9).toFixed(1)}B`
