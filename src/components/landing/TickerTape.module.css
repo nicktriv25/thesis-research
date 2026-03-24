@@ -20,11 +20,16 @@
   mask-image: linear-gradient(90deg, transparent, black 80px, black calc(100% - 80px), transparent);
 }
 
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 .tape {
   display: flex;
   gap: 10px;
   width: max-content;
-  animation: ticker-scroll 40s linear infinite;
+  animation: ticker-scroll 60s linear infinite;
 }
 
 .tape:hover {

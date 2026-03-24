@@ -47,7 +47,7 @@ export default function ReportNav() {
   return (
     <nav className={styles.nav}>
       <span className={styles.brand} onClick={() => router.push('/')}>
-        Thesis<span>Powered by TIE</span>
+        Thesis
       </span>
 
       <div className={styles.divider} />

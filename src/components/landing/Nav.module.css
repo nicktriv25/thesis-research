@@ -15,18 +15,6 @@
   font-weight: 700;
   color: var(--ink);
   letter-spacing: -0.5px;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.logo span {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--ink4);
-  font-weight: 400;
-  letter-spacing: 0.5px;
-  text-transform: none;
 }
 
 .links {

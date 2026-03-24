@@ -9,7 +9,7 @@ export default function Nav() {
   return (
     <nav className={styles.nav}>
       <div className={styles.logo}>
-        Thesis<span>Powered by TIE</span>
+        Thesis
       </div>
       <div className={styles.links}>
         <button className={styles.about} onClick={() => router.push('/about')}>
