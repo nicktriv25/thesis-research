@@ -7,7 +7,6 @@ import styles from './ReportNav.module.css'
 interface SearchResult {
   t: string
   n: string
-  exchange: string
 }
 
 export default function ReportNav() {
@@ -19,7 +18,7 @@ export default function ReportNav() {
 
   useEffect(() => {
     const q = query.trim()
-    if (!q) { setResults([]); setOpen(false); return }
+    if (q.length < 2) { setResults([]); setOpen(false); return }
 
     const timer = setTimeout(() => {
       controllerRef.current?.abort()
@@ -28,9 +27,10 @@ export default function ReportNav() {
 
       fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
         .then(r => r.json())
-        .then((data: SearchResult[]) => {
-          setResults(data)
-          setOpen(data.length > 0)
+        .then((data: unknown) => {
+          const list = Array.isArray(data) ? (data as SearchResult[]) : []
+          setResults(list)
+          setOpen(list.length > 0)
         })
         .catch(() => {})
     }, 220)

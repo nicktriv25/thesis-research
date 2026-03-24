@@ -7,29 +7,33 @@ import styles from './Hero.module.css'
 interface SearchResult {
   t: string
   n: string
-  exchange: string
 }
 
 export default function Hero() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [open, setOpen] = useState(false)
+  const [searching, setSearching] = useState(false)
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const q = query.trim()
-    if (!q) { setResults([]); setOpen(false); return }
+    if (q.length < 2) { setResults([]); setOpen(false); setSearching(false); return }
 
+    setSearching(true)
     const controller = new AbortController()
     const timer = setTimeout(() => {
       fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
         .then(r => r.json())
         .then((data: SearchResult[]) => {
-          setResults(data)
-          setOpen(data.length > 0)
+          setResults(Array.isArray(data) ? data : [])
+          setOpen(true)
+          setSearching(false)
         })
-        .catch(() => {})
+        .catch(err => {
+          if (err.name !== 'AbortError') { setResults([]); setOpen(false); setSearching(false) }
+        })
     }, 220)
 
     return () => { clearTimeout(timer); controller.abort() }
@@ -83,7 +87,7 @@ export default function Hero() {
 
         {open && (
           <div className={styles.dropdown}>
-            {results.map(t => (
+            {results.length > 0 ? results.map(t => (
               <div
                 key={t.t}
                 className={styles.result}
@@ -93,7 +97,11 @@ export default function Hero() {
                 <span className={styles.rName}>{t.n}</span>
                 <span className={styles.rGo}>Generate Report →</span>
               </div>
-            ))}
+            )) : (
+              <div className={styles.noResults}>
+                {searching ? 'Searching…' : `No results for "${query}" — press Enter to try anyway`}
+              </div>
+            )}
           </div>
         )}
 

@@ -141,6 +141,13 @@
   font-weight: 600;
 }
 
+.noResults {
+  padding: 14px 20px;
+  font-size: 13px;
+  color: var(--ink4);
+  font-family: var(--font-mono);
+}
+
 /* Hint */
 .hint {
   margin-top: 10px;
