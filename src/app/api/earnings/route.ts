@@ -50,6 +50,9 @@ export async function GET() {
   try {
     const calUrl = `https://financialmodelingprep.com/stable/earnings-calendar?from=${from}&to=${to}&apikey=${key}`
     const calRes = await fetch(calUrl, { next: { revalidate: 3600 } })
+    if (calRes.status === 402 || calRes.status === 403) {
+      return NextResponse.json({ error: 'Earnings calendar not available on the free data plan.' }, { status: 402 })
+    }
     if (!calRes.ok) throw new Error(`FMP earnings calendar ${calRes.status}`)
 
     const raw: FMPEarningsItem[] = await calRes.json()

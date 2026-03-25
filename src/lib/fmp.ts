@@ -64,6 +64,7 @@ async function fmpFetch<T>(path: string, attempt = 0): Promise<T> {
 
   // Hard HTTP errors
   if (res.status === 401) throw new FMPPlanError('Invalid FMP API key')
+  if (res.status === 402) throw new FMPPlanError('FMP endpoint not available on the free tier')
   if (res.status === 403) throw new FMPPlanError('FMP endpoint requires a higher subscription tier')
   if (!res.ok) throw new Error(`FMP HTTP ${res.status} for ${path}`)
 
@@ -95,8 +96,9 @@ async function fmpFetchOptional<T>(path: string): Promise<T | null> {
   try {
     return await fmpFetch<T>(path)
   } catch (err) {
-    // Propagate plan and rate-limit errors so callers can surface them to the user
-    if (err instanceof FMPPlanError) throw err
+    // Plan errors on optional endpoints mean the free tier doesn't include them — degrade to null
+    if (err instanceof FMPPlanError) return null
+    // Propagate rate-limit errors so callers can surface them to the user
     if (err instanceof FMPRateLimitError) throw err
     return null
   }
