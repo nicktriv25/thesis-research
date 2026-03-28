@@ -1,7 +1,7 @@
 /**
  * TIE Engine — Thesis Intelligence Engine
  * Uses Claude claude-sonnet-4-20250514 to generate a full investment thesis,
- * DCF valuation, bull/base/bear scenarios, and risk factors from live FMP data.
+ * DCF valuation, bull/base/bear scenarios, and risk factors from live Polygon data.
  * Phase 1: Web search for recent earnings, analyst coverage, and events.
  * Phase 2: Structured report generation using gathered research context.
  */

@@ -1,146 +1,191 @@
 /**
- * Financial Modeling Prep API client (stable endpoints)
- * Fetches real stock quotes, company profiles, and key financial ratios.
+ * Polygon.io market data client
+ * Replaces the previous FMP client with Polygon endpoints:
+ *   - /v2/aggs/ticker/{ticker}/prev       — previous-day OHLCV (price)
+ *   - /v3/reference/tickers/{ticker}      — company profile & market cap
+ *   - /v2/aggs/ticker/{ticker}/range/...  — multi-day bars for daily change
+ *   - /vX/reference/financials            — income statement (margins, EPS, revenue)
+ *   - /v2/reference/news                  — recent news articles
  */
 
-const BASE_URL = 'https://financialmodelingprep.com/stable'
+const BASE_URL = 'https://api.polygon.io'
 
 function apiKey(): string {
-  const key = process.env.FMP_API_KEY
-  if (!key) throw new Error('FMP_API_KEY environment variable is not set')
+  const key = process.env.POLYGON_API_KEY
+  if (!key) throw new Error('POLYGON_API_KEY environment variable is not set')
   return key
 }
 
-/**
- * Error thrown when FMP blocks a request due to subscription limits.
- * Lets callers distinguish plan issues from bad tickers or network errors.
- */
-export class FMPPlanError extends Error {
+// ─── Error classes ────────────────────────────────────────────────────────────
+
+export class PolygonPlanError extends Error {
   constructor(message: string) {
     super(message)
-    this.name = 'FMPPlanError'
+    this.name = 'PolygonPlanError'
   }
 }
 
-/**
- * Error thrown when FMP returns no data for a ticker (empty array).
- * Indicates the ticker is unknown to FMP, not a plan issue.
- */
-export class FMPNotFoundError extends Error {
+export class PolygonNotFoundError extends Error {
   constructor(ticker: string) {
     super(`No data found for ${ticker}`)
-    this.name = 'FMPNotFoundError'
+    this.name = 'PolygonNotFoundError'
   }
 }
 
-/**
- * Error thrown when FMP rate-limits the request (HTTP 429).
- * The free tier shares a request budget; popular tickers like AMZN exhaust
- * it faster when multiple users are concurrent, or when the 5-call Promise.all
- * bursts past the per-second cap.
- */
-export class FMPRateLimitError extends Error {
+export class PolygonRateLimitError extends Error {
   constructor() {
-    super('FMP rate limit reached — please try again in a moment')
-    this.name = 'FMPRateLimitError'
+    super('Polygon rate limit reached — please try again in a moment')
+    this.name = 'PolygonRateLimitError'
   }
 }
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 
-async function fmpFetch<T>(path: string, attempt = 0): Promise<T> {
+async function polyFetch<T>(path: string, attempt = 0): Promise<T> {
   const sep = path.includes('?') ? '&' : '?'
-  const url = `${BASE_URL}${path}${sep}apikey=${apiKey()}`
+  const url = `${BASE_URL}${path}${sep}apiKey=${apiKey()}`
   const res = await fetch(url, { next: { revalidate: 300 } })
 
-  // Rate limited — retry up to 2 times with exponential backoff (2 s, 4 s)
   if (res.status === 429) {
     if (attempt < 2) {
       await sleep(2000 * (attempt + 1))
-      return fmpFetch<T>(path, attempt + 1)
+      return polyFetch<T>(path, attempt + 1)
     }
-    throw new FMPRateLimitError()
+    throw new PolygonRateLimitError()
   }
 
-  // Hard HTTP errors
-  if (res.status === 401) throw new FMPPlanError('Invalid FMP API key')
-  if (res.status === 402) throw new FMPPlanError('FMP endpoint not available on the free tier')
-  if (res.status === 403) throw new FMPPlanError('FMP endpoint requires a higher subscription tier')
-  if (!res.ok) throw new Error(`FMP HTTP ${res.status} for ${path}`)
+  if (res.status === 401 || res.status === 403) {
+    throw new PolygonPlanError('Invalid or unauthorized Polygon API key')
+  }
+
+  if (!res.ok) throw new Error(`Polygon HTTP ${res.status} for ${path}`)
 
   const data = await res.json()
 
-  // FMP returns 200 with {"Error Message": "..."} for plan/rate-limit issues
-  if (data && typeof data === 'object' && !Array.isArray(data)) {
-    const msg: string | undefined = data['Error Message'] ?? data['message'] ?? data['error']
-    if (msg) {
-      const lower = msg.toLowerCase()
-      if (
-        lower.includes('subscription') ||
-        lower.includes('upgrade') ||
-        lower.includes('not available under your current') ||
-        lower.includes('limit reach') ||
-        lower.includes('rate limit')
-      ) {
-        throw new FMPPlanError(msg)
-      }
-      throw new Error(`FMP error: ${msg}`)
-    }
+  if (data && typeof data === 'object' && data.status === 'ERROR') {
+    const msg: string = data.error ?? data.message ?? 'unknown Polygon error'
+    throw new Error(`Polygon error: ${msg}`)
   }
 
   return data as T
 }
 
-/** Like fmpFetch but returns null on any error (used for optional enrichment data). */
-async function fmpFetchOptional<T>(path: string): Promise<T | null> {
+async function polyFetchOptional<T>(path: string): Promise<T | null> {
   try {
-    return await fmpFetch<T>(path)
+    return await polyFetch<T>(path)
   } catch (err) {
-    // Plan errors on optional endpoints mean the free tier doesn't include them — degrade to null
-    if (err instanceof FMPPlanError) return null
-    // Propagate rate-limit errors so callers can surface them to the user
-    if (err instanceof FMPRateLimitError) throw err
+    if (err instanceof PolygonPlanError) return null
+    if (err instanceof PolygonRateLimitError) throw err
     return null
   }
 }
 
-// ─── Raw FMP stable response shapes ──────────────────────────────────────────
+// ─── MIC → readable exchange name ────────────────────────────────────────────
 
-interface FMPQuoteItem {
-  symbol: string
+function deriveExchange(mic: string): string {
+  const map: Record<string, string> = {
+    XNAS: 'NASDAQ',
+    XNYS: 'NYSE',
+    ARCX: 'NYSE Arca',
+    XASE: 'NYSE American',
+    BATS: 'CBOE BZX',
+    EDGX: 'CBOE EDGX',
+    XBOS: 'Nasdaq BX',
+    XPHL: 'Nasdaq PHLX',
+    XCBO: 'CBOE',
+    XCHI: 'NYSE Chicago',
+  }
+  return map[mic] ?? mic
+}
+
+// ─── SIC code → sector ───────────────────────────────────────────────────────
+
+function deriveSector(sicCode: string | undefined): string {
+  if (!sicCode) return 'Unknown'
+  const code = parseInt(sicCode, 10)
+  if (code >= 100 && code <= 999) return 'Agriculture'
+  if (code >= 1000 && code <= 1499) return 'Energy & Mining'
+  if (code >= 1500 && code <= 3999) return 'Industrials'
+  if (code >= 4000 && code <= 4499) return 'Industrials'
+  if (code >= 4500 && code <= 4599) return 'Industrials'
+  if (code >= 4600 && code <= 4899) return 'Communication Services'
+  if (code >= 4900 && code <= 4999) return 'Utilities'
+  if (code >= 5000 && code <= 5999) return 'Consumer Discretionary'
+  if (code >= 6000 && code <= 6411) return 'Financials'
+  if (code >= 6500 && code <= 6799) return 'Real Estate'
+  if (code >= 7000 && code <= 7099) return 'Consumer Discretionary'
+  if (code >= 7370 && code <= 7379) return 'Information Technology'
+  if (code >= 7380 && code <= 7389) return 'Information Technology'
+  if (code >= 7812 && code <= 7812) return 'Communication Services'
+  if (code >= 8000 && code <= 8099) return 'Health Care'
+  if (code >= 8700 && code <= 8742) return 'Information Technology'
+  return 'Other'
+}
+
+// ─── Polygon response shapes ──────────────────────────────────────────────────
+
+interface PolyAgg {
+  T?: string
+  c: number   // close
+  h: number   // high
+  l: number   // low
+  o: number   // open
+  v: number   // volume
+  vw?: number // vwap
+  t: number   // timestamp (ms)
+}
+
+interface PolyAggsResponse {
+  results?: PolyAgg[]
+  resultsCount?: number
+  status: string
+}
+
+interface PolyTickerDetails {
+  ticker: string
   name: string
-  price: number
-  change: number
-  changePercentage: number
-  marketCap: number
-  exchange: string
+  market: string
+  primary_exchange?: string
+  currency_name?: string
+  description?: string
+  market_cap?: number
+  sic_code?: string
+  sic_description?: string
+  active?: boolean
 }
 
-interface FMPProfileItem {
-  symbol: string
-  companyName: string
-  sector: string
-  industry: string
-  exchange: string
-  exchangeFullName: string
-  currency: string
-  description: string
+interface PolyTickerResponse {
+  results?: PolyTickerDetails
+  status: string
 }
 
-interface FMPKeyMetricsTTMItem {
-  evToSalesTTM: number | null
+interface PolyFinancialValue {
+  value: number
+  unit?: string
 }
 
-interface FMPRatiosTTMItem {
-  grossProfitMarginTTM: number | null
-  priceToEarningsRatioTTM: number | null
+interface PolyIncomeStatement {
+  revenues?: PolyFinancialValue
+  gross_profit?: PolyFinancialValue
+  diluted_earnings_per_share?: PolyFinancialValue
 }
 
-interface FMPFinancialGrowthItem {
-  revenueGrowth: number | null
+interface PolyFinancialResult {
+  start_date: string
+  end_date: string
+  fiscal_year?: string
+  fiscal_period?: string
+  financials: {
+    income_statement?: PolyIncomeStatement
+  }
 }
 
-// ─── Our clean snapshot type ──────────────────────────────────────────────────
+interface PolyFinancialsResponse {
+  results?: PolyFinancialResult[]
+  status: string
+}
+
+// ─── Our clean snapshot type (unchanged interface) ────────────────────────────
 
 export interface StockSnapshot {
   ticker: string
@@ -165,53 +210,113 @@ export interface StockSnapshot {
 export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
   const symbol = ticker.toUpperCase()
 
-  // Fetch required data first, then stagger optional enrichment calls to avoid
-  // bursting the free-tier rate limit (especially for high-traffic tickers like AMZN)
-  const [quotes, profiles] = await Promise.all([
-    fmpFetch<FMPQuoteItem[]>(`/quote?symbol=${symbol}`),
-    fmpFetch<FMPProfileItem[]>(`/profile?symbol=${symbol}`),
+  // Phase 1: price (prev-day agg) + company profile in parallel
+  const [prevAggs, profileRes] = await Promise.all([
+    polyFetch<PolyAggsResponse>(`/v2/aggs/ticker/${symbol}/prev`),
+    polyFetch<PolyTickerResponse>(`/v3/reference/tickers/${symbol}`),
   ])
 
-  const [keyMetrics, ratios, growth] = await Promise.all([
-    fmpFetchOptional<FMPKeyMetricsTTMItem[]>(`/key-metrics-ttm?symbol=${symbol}`),
-    sleep(150).then(() => fmpFetchOptional<FMPRatiosTTMItem[]>(`/ratios-ttm?symbol=${symbol}`)),
-    sleep(300).then(() => fmpFetchOptional<FMPFinancialGrowthItem[]>(`/financial-growth?symbol=${symbol}&limit=1`)),
+  const agg = prevAggs.results?.[0]
+  const details = profileRes.results
+
+  if (!agg || !details) throw new PolygonNotFoundError(symbol)
+  if (details.active === false) throw new PolygonNotFoundError(symbol)
+
+  const price = agg.c
+
+  // Phase 2: 2-day range for daily change, and quarterly financials (both optional)
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  const weekAgo = new Date(yesterday)
+  weekAgo.setDate(weekAgo.getDate() - 7)
+  const fmt = (d: Date) => d.toISOString().slice(0, 10)
+
+  const [rangeData, financialsData] = await Promise.all([
+    polyFetchOptional<PolyAggsResponse>(
+      `/v2/aggs/ticker/${symbol}/range/1/day/${fmt(weekAgo)}/${fmt(yesterday)}`
+    ),
+    polyFetchOptional<PolyFinancialsResponse>(
+      `/vX/reference/financials?ticker=${symbol}&timeframe=quarterly&order=desc&limit=5`
+    ),
   ])
 
-  const q = quotes?.[0]
-  const p = profiles?.[0]
-  const m = keyMetrics?.[0]
-  const r = ratios?.[0]
-  const g = growth?.[0]
+  // Daily change from last two trading-day bars
+  let change = 0
+  let changePct = 0
+  const bars = rangeData?.results ?? []
+  if (bars.length >= 2) {
+    const latest = bars[bars.length - 1]
+    const prior = bars[bars.length - 2]
+    change = latest.c - prior.c
+    changePct = prior.c > 0 ? ((latest.c - prior.c) / prior.c) * 100 : 0
+  }
 
-  if (!q || !p) throw new FMPNotFoundError(symbol)
+  // Financial metrics from quarterly income statements
+  let pe: number | null = null
+  let evToRevenue: number | null = null
+  let revenueGrowth: number | null = null
+  let grossMargin: number | null = null
+
+  const quarters = financialsData?.results ?? []
+  if (quarters.length > 0) {
+    const latestIS = quarters[0].financials.income_statement
+
+    // Gross margin: gross_profit / revenues (most recent quarter)
+    const revQ = latestIS?.revenues?.value
+    const gpQ = latestIS?.gross_profit?.value
+    if (revQ && gpQ && revQ > 0) grossMargin = gpQ / revQ
+
+    // TTM EPS → P/E
+    const ttmEPS = quarters.slice(0, 4).reduce((sum, q) => {
+      return sum + (q.financials.income_statement?.diluted_earnings_per_share?.value ?? 0)
+    }, 0)
+    if (ttmEPS > 0 && price > 0) pe = price / ttmEPS
+
+    // Revenue growth: latest quarter vs same quarter prior year
+    if (quarters.length >= 5) {
+      const curr = quarters[0].financials.income_statement?.revenues?.value
+      const prior = quarters[4].financials.income_statement?.revenues?.value
+      if (curr && prior && prior > 0) revenueGrowth = (curr - prior) / prior
+    }
+
+    // EV/Revenue proxy: market cap / TTM revenue
+    const ttmRev = quarters.slice(0, 4).reduce((sum, q) => {
+      return sum + (q.financials.income_statement?.revenues?.value ?? 0)
+    }, 0)
+    const mktCap = details.market_cap ?? 0
+    if (ttmRev > 0 && mktCap > 0) evToRevenue = mktCap / ttmRev
+  }
 
   return {
     ticker: symbol,
-    name: p.companyName || q.name,
-    exchange: p.exchange,
-    sector: p.sector || 'Unknown',
-    industry: p.industry || 'Unknown',
-    description: p.description || '',
-    currency: p.currency || 'USD',
-    price: q.price,
-    change: q.change,
-    changePct: q.changePercentage,
-    marketCap: q.marketCap,
-    pe: r?.priceToEarningsRatioTTM ?? null,
-    evToRevenue: m?.evToSalesTTM ?? null,
-    revenueGrowth: g?.revenueGrowth ?? null,
-    grossMargin: r?.grossProfitMarginTTM ?? null,
+    name: details.name,
+    exchange: deriveExchange(details.primary_exchange ?? ''),
+    sector: deriveSector(details.sic_code),
+    industry: details.sic_description ?? 'Unknown',
+    description: details.description ?? '',
+    currency: (details.currency_name ?? 'usd').toUpperCase(),
+    price,
+    change,
+    changePct,
+    marketCap: details.market_cap ?? 0,
+    pe,
+    evToRevenue,
+    revenueGrowth,
+    grossMargin,
   }
 }
 
 // ─── News ─────────────────────────────────────────────────────────────────────
 
-interface FMPNewsItem {
+interface PolyNewsItem {
+  id: string
   title: string
-  site: string
-  publishedDate: string
-  url: string
+  article_url: string
+  published_utc: string
+  publisher: {
+    name: string
+  }
+  tickers?: string[]
 }
 
 export interface StockNewsItem {
@@ -224,30 +329,29 @@ export interface StockNewsItem {
 export async function getStockNews(ticker: string): Promise<StockNewsItem[]> {
   const symbol = ticker.toUpperCase()
   try {
-    const items = await fmpFetch<FMPNewsItem[]>(
-      `/stock-news?tickers=${symbol}&limit=5`
+    const data = await polyFetch<{ results?: PolyNewsItem[]; status: string }>(
+      `/v2/reference/news?ticker=${symbol}&limit=5&order=desc&sort=published_utc`
     )
-    if (!Array.isArray(items)) return []
-    return items.map(item => ({
+    if (!Array.isArray(data.results)) return []
+    return data.results.map(item => ({
       headline: item.title,
-      source: item.site,
-      date: item.publishedDate,
-      url: item.url,
+      source: item.publisher?.name ?? 'Unknown',
+      date: item.published_utc,
+      url: item.article_url,
     }))
   } catch {
     return []
   }
 }
 
-// ─── Formatters ───────────────────────────────────────────────────────────────
+// ─── Formatters (unchanged) ───────────────────────────────────────────────────
 
 export function formatMarketCap(cap: number): string {
   if (!cap) return 'N/A'
-  const raw = cap < 1e6 ? cap * 1e6 : cap
-  if (raw >= 1e12) return `$${(raw / 1e12).toFixed(1)}T`
-  if (raw >= 1e9)  return `$${(raw / 1e9).toFixed(1)}B`
-  if (raw >= 1e6)  return `$${(raw / 1e6).toFixed(0)}M`
-  return `$${raw.toLocaleString()}`
+  if (cap >= 1e12) return `$${(cap / 1e12).toFixed(1)}T`
+  if (cap >= 1e9)  return `$${(cap / 1e9).toFixed(1)}B`
+  if (cap >= 1e6)  return `$${(cap / 1e6).toFixed(0)}M`
+  return `$${cap.toLocaleString()}`
 }
 
 export function formatPct(value: number | null): string {

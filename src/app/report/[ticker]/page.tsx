@@ -60,7 +60,7 @@ export default function ReportPage() {
 
   function errorBody(e: ReportError): string {
     if (e.code === 'plan_restricted') {
-      return `Data unavailable for ${ticker} on the free data plan. Some tickers require a premium FMP subscription.`
+      return `Market data unavailable for ${ticker}. The data provider may lack coverage for this ticker.`
     }
     if (e.code === 'not_found') {
       return `No market data found for ${ticker}. Check the ticker symbol is correct and the company is actively traded.`

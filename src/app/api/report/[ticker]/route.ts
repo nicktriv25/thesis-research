@@ -5,9 +5,9 @@ import {
   formatMarketCap,
   formatPct,
   formatMultiple,
-  FMPPlanError,
-  FMPNotFoundError,
-  FMPRateLimitError,
+  PolygonPlanError,
+  PolygonNotFoundError,
+  PolygonRateLimitError,
   type StockSnapshot,
 } from '@/lib/fmp'
 import { generateTIEAnalysis } from '@/lib/tie-engine'
@@ -17,9 +17,9 @@ import type { TIEReport, KeyMetric } from '@/lib/types'
 /**
  * GET /api/report/[ticker]
  *
- * Session 3: Fetches live data from FMP, passes it to the TIE Engine (Claude
- * claude-sonnet-4-20250514) to generate a full investment thesis, DCF valuation,
- * bull/base/bear scenarios, and risk factors.
+ * Fetches live market data from Polygon.io, then passes it to the TIE Engine
+ * (Claude claude-sonnet-4-20250514) to generate a full investment thesis, DCF
+ * valuation, bull/base/bear scenarios, and risk factors.
  */
 
 function buildMetrics(snap: StockSnapshot): KeyMetric[] {
@@ -53,7 +53,7 @@ export async function GET(
   }
 
   try {
-    // Step 1: Fetch live market data + news from FMP (news is best-effort)
+    // Step 1: Fetch live market data + news from Polygon
     const [snap, news] = await Promise.all([
       getStockSnapshot(symbol),
       getStockNews(symbol),
@@ -64,7 +64,6 @@ export async function GET(
 
     // Step 3: Assemble final TIEReport merging live data + AI analysis
     const report: TIEReport = {
-      // Identity
       ticker: snap.ticker,
       exchange: snap.exchange,
       companyName: snap.name,
@@ -72,7 +71,6 @@ export async function GET(
       reportType: tie.reportType,
       generatedAt: new Date().toISOString(),
 
-      // Verdict from TIE Engine
       rating: tie.rating,
       priceTarget: {
         base: tie.priceTarget.base,
@@ -82,10 +80,8 @@ export async function GET(
       },
       currentPrice: snap.price,
 
-      // Live metrics from FMP
       metrics: buildMetrics(snap),
 
-      // Narrative from TIE Engine
       investmentThesis: {
         title: 'Investment Thesis',
         content: tie.investmentThesis,
@@ -103,20 +99,12 @@ export async function GET(
         content: tie.riskFactors,
       },
 
-      // DCF from TIE Engine
       dcf: tie.dcf,
-
-      // Scenarios from TIE Engine
       scenarios: tie.scenarios,
-
-      // Comparables from TIE Engine (subject co. uses live FMP data for first row)
       comparables: tie.comparables,
-
-      // Recent news from FMP
       news,
     }
 
-    // Increment the report counter on success
     incrementCount()
 
     return NextResponse.json(report)
@@ -124,19 +112,19 @@ export async function GET(
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error(`[report/${symbol}]`, err instanceof Error ? err.name : 'Error', message)
 
-    if (err instanceof FMPPlanError) {
+    if (err instanceof PolygonPlanError) {
       return NextResponse.json(
-        { code: 'plan_restricted', error: `Data unavailable for ${symbol} on the free data plan. This ticker may require a premium FMP subscription.` },
+        { code: 'plan_restricted', error: `Market data unavailable for ${symbol}. The API key may lack permissions for this ticker.` },
         { status: 402 }
       )
     }
-    if (err instanceof FMPNotFoundError) {
+    if (err instanceof PolygonNotFoundError) {
       return NextResponse.json(
         { code: 'not_found', error: `No market data found for ${symbol}. Verify the ticker symbol is correct and the company is actively traded.` },
         { status: 404 }
       )
     }
-    if (err instanceof FMPRateLimitError) {
+    if (err instanceof PolygonRateLimitError) {
       return NextResponse.json(
         { code: 'rate_limited', error: `Rate limited fetching data for ${symbol} — please try again in a moment.` },
         { status: 429 }

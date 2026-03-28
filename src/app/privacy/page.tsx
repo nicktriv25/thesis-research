@@ -42,7 +42,7 @@ export default function PrivacyPage() {
 
           <section className={styles.section}>
             <h2 className={styles.h2}>4. Third-Party Services</h2>
-            <p><strong>Financial Modeling Prep.</strong> Market data is fetched from Financial Modeling Prep&apos;s API. Your ticker queries are sent to their servers to retrieve financial data. FMP&apos;s privacy policy governs their data practices.</p>
+            <p><strong>Polygon.io.</strong> Market data is fetched from Polygon.io&apos;s API. Your ticker queries are sent to their servers to retrieve financial data. Polygon&apos;s privacy policy governs their data practices.</p>
             <p><strong>Anthropic.</strong> Report generation uses Anthropic&apos;s Claude API. The financial data for your requested ticker is sent to Anthropic&apos;s servers for processing. Anthropic&apos;s privacy policy governs their data practices. Anthropic does not use API inputs to train their models by default.</p>
           </section>
 

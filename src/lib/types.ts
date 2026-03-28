@@ -92,7 +92,7 @@ export interface TIEReport {
   scenarios: ScenarioCase[]
   comparables: Comparable[]
 
-  // Recent news (may be empty if FMP returns nothing)
+  // Recent news (may be empty if Polygon returns nothing)
   news: NewsItem[]
 }
 
