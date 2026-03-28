@@ -1,0 +1,225 @@
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  background: var(--paper);
+  min-height: 100vh;
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.08);
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+
+.header {
+  padding: 36px 48px 28px;
+  border-bottom: 2px solid var(--navy);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink4);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.briefTag {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.dot {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--ink4);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.exchange {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.company {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+}
+
+.sector {
+  font-size: 14px;
+  color: var(--ink3);
+  margin-top: 6px;
+}
+
+/* Rating box */
+.ratingBox {
+  text-align: center;
+  padding: 16px 28px;
+  border-radius: 4px;
+  border: 2px solid;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.ratingLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.ratingAction {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.ratingTarget {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.buy  { border-color: var(--buy);  background: var(--buy-bg);  }
+.hold { border-color: var(--hold); background: var(--hold-bg); }
+.sell { border-color: var(--sell); background: var(--sell-bg); }
+
+.buy  .ratingLabel, .buy  .ratingAction, .buy  .ratingTarget { color: var(--buy);  }
+.hold .ratingLabel, .hold .ratingAction, .hold .ratingTarget { color: var(--hold); }
+.sell .ratingLabel, .sell .ratingAction, .sell .ratingTarget { color: var(--sell); }
+
+/* ─── Narrative ──────────────────────────────────────────────────────────── */
+
+.content {
+  padding: 36px 48px;
+}
+
+/* ─── CTA ────────────────────────────────────────────────────────────────── */
+
+.cta {
+  border-top: 1px solid var(--rule);
+  background: var(--blue-tint);
+  padding: 40px 48px;
+}
+
+.ctaInner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.ctaLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.ctaTitle {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.ctaList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ctaList li {
+  font-size: 13px;
+  color: var(--ink3);
+  padding-left: 16px;
+  position: relative;
+}
+
+.ctaList li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.ctaRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.ctaBtn {
+  padding: 14px 28px;
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+
+.ctaBtn:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+.ctaBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ctaTiming {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink4);
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 700px) {
+  .header  { padding: 24px 20px; }
+  .content { padding: 24px 20px; }
+  .cta     { padding: 28px 20px; }
+  .top     { flex-direction: column; }
+  .company { font-size: 28px; }
+  .ratingBox { min-width: unset; width: 100%; }
+  .ctaInner  { flex-direction: column; }
+  .ctaRight  { align-items: flex-start; width: 100%; }
+  .ctaBtn    { width: 100%; }
+}
+
+@media print {
+  .cta { display: none; }
+}

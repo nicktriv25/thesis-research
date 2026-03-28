@@ -64,6 +64,20 @@ export interface NewsItem {
   url: string
 }
 
+export interface TIEBriefReport {
+  ticker: string
+  exchange: string
+  companyName: string
+  sector: string
+  generatedAt: string
+  rating: Rating
+  priceTarget: PriceTarget
+  currentPrice: number
+  metrics: KeyMetric[]
+  investmentThesis: ReportSection
+  topRisks: ReportSection
+}
+
 export interface TIEReport {
   // Identity
   ticker: string

@@ -178,61 +178,44 @@ Always anchor your narrative in the most recent quarterly earnings, management g
 }
 
 function buildResearchSystemPrompt(): string {
-  return `You are a financial research analyst. Search the web for the most recent information about the company.
-Focus on: the most recent quarterly earnings (revenue, EPS, beat/miss vs consensus), analyst price target changes in the
-last 60 days, any significant recent news (M&A, product launches, regulatory actions), and management guidance.
-Return a detailed research brief with specific numbers, dates, analyst firm names, and dollar figures.
-Be thorough — include the most recent Q results with exact figures, and at least 3-5 recent analyst price target changes.`
+  return `You are a financial research analyst. Search for recent data and return a concise bullet-point brief — max 250 words. Cover: latest quarterly earnings (revenue, EPS, beat/miss), 2-3 analyst price target changes with firm names, one key recent catalyst. Numbers and dates only. No preamble or padding.`
 }
 
 function buildSearchPrompt(snap: StockSnapshot): string {
-  return `Search for recent financial research on ${snap.name} (${snap.ticker}), a ${snap.industry} company.
-
-Find and summarize:
-1. Most recent quarterly earnings — exact revenue ($B), EPS, and beat/miss vs Wall Street consensus
-2. Recent analyst price target changes (last 60 days) — include firm name, old target, new target, rating
-3. Management guidance for next quarter/year from the most recent earnings call
-4. Any significant recent events: M&A activity, product launches, partnerships, regulatory filings, or macro headwinds
-5. Current analyst consensus: average price target, buy/hold/sell breakdown
-
-Current price: $${snap.price.toFixed(2)} | Market cap: $${(snap.marketCap / 1e9).toFixed(1)}B`
+  return `${snap.name} (${snap.ticker}), $${snap.price.toFixed(2)}, mkt cap $${(snap.marketCap / 1e9).toFixed(1)}B. Find: (1) most recent quarterly earnings — revenue, EPS, beat/miss vs consensus; (2) 2-3 recent analyst target changes with firm names; (3) one major recent catalyst. Bullet points only, max 200 words.`
 }
 
 function buildUserPrompt(snap: StockSnapshot, researchContext: string): string {
   const fmt = (v: number | null, multiplier = 1, suffix = '') =>
     v !== null ? `${(v * multiplier).toFixed(1)}${suffix}` : 'N/A'
 
-  const contextSection = researchContext
-    ? `\n## Recent Research & News (from web search)\n${researchContext}\n\n`
+  // Cap research context at 1,500 chars (~375 tokens) to keep total input under 20k tokens
+  const cappedContext = researchContext.length > 1500
+    ? researchContext.slice(0, 1500) + '…'
+    : researchContext
+  const contextSection = cappedContext
+    ? `\n## Recent Research (web search)\n${cappedContext}\n`
     : ''
 
-  return `Generate a complete institutional equity research report for ${snap.name} (${snap.ticker}).
+  // Truncate description to 400 chars to avoid bloating the prompt
+  const description = (snap.description || `${snap.name} operates in the ${snap.sector} sector (${snap.industry}).`).slice(0, 400)
+
+  return `Generate an institutional equity research report for ${snap.name} (${snap.ticker}).
 ${contextSection}
-## Live Market Data (as of now)
-- **Ticker:** ${snap.ticker} | **Exchange:** ${snap.exchange}
-- **Company:** ${snap.name}
-- **Sector:** ${snap.sector} | **Industry:** ${snap.industry}
-- **Current Price:** $${snap.price.toFixed(2)} ${snap.currency}
-- **Market Cap:** $${(snap.marketCap / 1e9).toFixed(1)}B
-- **Daily Change:** ${snap.changePct >= 0 ? '+' : ''}${snap.changePct.toFixed(2)}%
-
-## Key Financial Metrics (TTM / Most Recent)
-- **P/E Ratio (TTM):** ${snap.pe !== null ? `${snap.pe.toFixed(1)}x` : 'N/A'}
-- **EV / Revenue:** ${snap.evToRevenue !== null ? `${snap.evToRevenue.toFixed(1)}x` : 'N/A'}
-- **Revenue Growth (YoY):** ${fmt(snap.revenueGrowth, 100, '%')}
-- **Gross Margin:** ${fmt(snap.grossMargin, 100, '%')}
-
-## Company Description
-${snap.description || `${snap.name} operates in the ${snap.sector} sector (${snap.industry}).`}
+## Market Data
+- Price: $${snap.price.toFixed(2)} ${snap.currency} (${snap.changePct >= 0 ? '+' : ''}${snap.changePct.toFixed(2)}% today)
+- Market Cap: $${(snap.marketCap / 1e9).toFixed(1)}B | Exchange: ${snap.exchange}
+- Sector: ${snap.sector} | Industry: ${snap.industry}
+- P/E (TTM): ${snap.pe !== null ? `${snap.pe.toFixed(1)}x` : 'N/A'} | EV/Rev: ${snap.evToRevenue !== null ? `${snap.evToRevenue.toFixed(1)}x` : 'N/A'}
+- Rev Growth: ${fmt(snap.revenueGrowth, 100, '%')} | Gross Margin: ${fmt(snap.grossMargin, 100, '%')}
+- ${description}
 
 ## Instructions
-1. Analyze this company using the live data above AND the recent research context from web search (if provided).
-2. Generate a full investment report using the generate_investment_report tool.
-3. CITE SPECIFIC DATA: Every narrative paragraph must reference real numbers — quote exact earnings figures, analyst price targets by firm, management guidance from recent calls. Do not write in generalities.
-4. For the DCF, model 5 years of explicit projections in billions USD. Base your revenue CAGR on the company's actual recent growth rate.
-5. For comparables, include the subject company first (use the live data above), then add 4–6 relevant sector peers.
-6. Price targets should be grounded in your DCF + the current analyst consensus from recent research.
-7. Each narrative section must be exactly 3 paragraphs, separated by \\n\\n. Reference specific quarters (e.g., "Q3 FY2025"), specific dollar amounts, and specific analyst firm names where available.`
+Use the live data and web research above. Call generate_investment_report with:
+- Specific numbers in every paragraph (cite quarters, dollar amounts, analyst firm names)
+- DCF: 5-year projections in billions USD based on actual recent growth rate
+- Comparables: subject company first (use live data), then 4–5 sector peers
+- Exactly 3 paragraphs per narrative section, separated by \\n\\n`
 }
 
 /**
@@ -245,11 +228,11 @@ async function gatherResearchContext(snap: StockSnapshot): Promise<string> {
       { role: 'user', content: buildSearchPrompt(snap) },
     ]
 
-    // Multi-turn loop: handles both server-side (transparent) and multi-turn web search
-    for (let round = 0; round < 4; round++) {
+    // Max 2 rounds to cap token usage; 1024 tokens is plenty for a bullet-point brief
+    for (let round = 0; round < 2; round++) {
       const response = await client.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 4096,
+        max_tokens: 1024,
         system: buildResearchSystemPrompt(),
         tools: [WEB_SEARCH_TOOL],
         messages,
@@ -289,6 +272,86 @@ async function gatherResearchContext(snap: StockSnapshot): Promise<string> {
     // Web search unavailable — report generation continues with financial data only
     return ''
   }
+}
+
+// ─── Brief generation (fast, no web search) ──────────────────────────────────
+
+const BRIEF_TOOL_NAME = 'generate_research_brief'
+
+const BRIEF_TOOL_SCHEMA: Anthropic.Tool = {
+  name: BRIEF_TOOL_NAME,
+  description: 'Generate a fast research brief with rating, price target, investment thesis, and top risks.',
+  input_schema: {
+    type: 'object' as const,
+    required: ['rating', 'priceTarget', 'investmentThesis', 'topRisks'],
+    properties: {
+      rating: {
+        type: 'string',
+        enum: ['BUY', 'HOLD', 'SELL'],
+        description: 'Analyst rating.',
+      },
+      priceTarget: {
+        type: 'object',
+        required: ['base', 'bull', 'bear'],
+        properties: {
+          base: { type: 'number', description: '12-month base case price target.' },
+          bull: { type: 'number', description: '12-month bull case price target.' },
+          bear: { type: 'number', description: '12-month bear case price target.' },
+        },
+      },
+      investmentThesis: {
+        type: 'string',
+        description: 'Exactly 2 paragraphs separated by \\n\\n. Para 1: core thesis with specific catalyst, citing actual metrics (revenue, margins, growth rates). Para 2: valuation setup and why now — cite current multiple vs peers.',
+      },
+      topRisks: {
+        type: 'string',
+        description: 'Exactly 2 paragraphs separated by \\n\\n. Para 1: key competitive and macro risks, quantified. Para 2: company-specific execution risks with specific timelines or figures.',
+      },
+    },
+  },
+}
+
+export interface TIEBriefAnalysis {
+  rating: Rating
+  priceTarget: { base: number; bull: number; bear: number }
+  investmentThesis: string
+  topRisks: string
+}
+
+function buildBriefPrompt(snap: StockSnapshot): string {
+  const fmt = (v: number | null, multiplier = 1, suffix = '') =>
+    v !== null ? `${(v * multiplier).toFixed(1)}${suffix}` : 'N/A'
+
+  const description = (snap.description || `${snap.name} operates in the ${snap.sector} sector.`).slice(0, 300)
+
+  return `Write a research brief for ${snap.name} (${snap.ticker}).
+
+## Market Data
+- Price: $${snap.price.toFixed(2)} ${snap.currency} | Mkt Cap: $${(snap.marketCap / 1e9).toFixed(1)}B
+- Sector: ${snap.sector} | Industry: ${snap.industry}
+- P/E (TTM): ${snap.pe !== null ? `${snap.pe.toFixed(1)}x` : 'N/A'} | EV/Rev: ${snap.evToRevenue !== null ? `${snap.evToRevenue.toFixed(1)}x` : 'N/A'}
+- Rev Growth: ${fmt(snap.revenueGrowth, 100, '%')} | Gross Margin: ${fmt(snap.grossMargin, 100, '%')}
+- ${description}
+
+Call generate_research_brief. Each narrative field: exactly 2 paragraphs separated by \\n\\n. Cite specific numbers.`
+}
+
+export async function generateTIEBrief(snap: StockSnapshot): Promise<TIEBriefAnalysis> {
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1500,
+    system: buildSystemPrompt(),
+    tools: [BRIEF_TOOL_SCHEMA],
+    tool_choice: { type: 'tool', name: BRIEF_TOOL_NAME },
+    messages: [{ role: 'user', content: buildBriefPrompt(snap) }],
+  })
+
+  const toolBlock = response.content.find(
+    (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use'
+  )
+  if (!toolBlock) throw new Error('TIE Engine: No brief tool_use block returned')
+
+  return toolBlock.input as TIEBriefAnalysis
 }
 
 export async function generateTIEAnalysis(snap: StockSnapshot): Promise<TIEAnalysis> {
