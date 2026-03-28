@@ -1,9 +1,9 @@
 /**
  * TIE Engine — Thesis Intelligence Engine
- * Uses Claude claude-sonnet-4-20250514 to generate a full investment thesis,
- * DCF valuation, bull/base/bear scenarios, and risk factors from live Polygon data.
+ * Generates institutional equity research reports.
  * Phase 1: Web search for recent earnings, analyst coverage, and events.
- * Phase 2: Structured report generation using gathered research context.
+ * Phase 2: Structured full report using gathered research context.
+ * Also exports generateTIEBrief for the fast brief tier.
  */
 
 import Anthropic from '@anthropic-ai/sdk'
@@ -18,10 +18,23 @@ export interface TIEAnalysis {
   rating: Rating
   priceTarget: { base: number; bull: number; bear: number }
   reportType: string
+  // Snapshot
+  businessDescription: string
+  snapshotSummary: string
+  snapshotThesis: string
+  whyNow: string
+  snapshotRisks: string
+  // Full report sections
+  investmentSummary: string
   investmentThesis: string
   businessOverview: string
+  industryPositioning: string
   financialAnalysis: string
-  riskFactors: string
+  forwardOutlook: string
+  valuationIntro: string
+  catalysts: string
+  keyRisks: string
+  // Quantitative
   dcf: DCFOutput
   scenarios: ScenarioCase[]
   comparables: Comparable[]
@@ -38,27 +51,21 @@ const WEB_SEARCH_TOOL: any = {
 
 const TOOL_SCHEMA: Anthropic.Tool = {
   name: TOOL_NAME,
-  description:
-    'Generate a complete institutional-grade equity research report including investment thesis, DCF valuation, scenarios, and risk factors.',
+  description: 'Generate a complete institutional equity research report with snapshot card and full analysis sections.',
   input_schema: {
     type: 'object' as const,
     required: [
-      'rating',
-      'priceTarget',
-      'reportType',
-      'investmentThesis',
-      'businessOverview',
-      'financialAnalysis',
-      'riskFactors',
-      'dcf',
-      'scenarios',
-      'comparables',
+      'rating', 'priceTarget', 'reportType',
+      'businessDescription', 'snapshotSummary', 'snapshotThesis', 'whyNow', 'snapshotRisks',
+      'investmentSummary', 'investmentThesis', 'businessOverview', 'industryPositioning',
+      'financialAnalysis', 'forwardOutlook', 'valuationIntro', 'catalysts', 'keyRisks',
+      'dcf', 'scenarios', 'comparables',
     ],
     properties: {
       rating: {
         type: 'string',
         enum: ['BUY', 'HOLD', 'SELL'],
-        description: 'Analyst rating: BUY (meaningful upside), HOLD (fairly valued), SELL (downside risk).',
+        description: 'Analyst rating.',
       },
       priceTarget: {
         type: 'object',
@@ -71,28 +78,70 @@ const TOOL_SCHEMA: Anthropic.Tool = {
       },
       reportType: {
         type: 'string',
-        description: 'Report classification e.g. "Initiation of Coverage", "Update", "Deep Dive".',
+        description: '"Initiation of Coverage", "Update", or "Deep Dive".',
+      },
+
+      // ── Snapshot card ──────────────────────────────────────────────────────
+      businessDescription: {
+        type: 'string',
+        description: 'One sentence: what the company does + its key competitive position. No fluff.',
+      },
+      snapshotSummary: {
+        type: 'string',
+        description: '4-5 sentences. S1: rating, price target, upside %. S2: one-line company identifier. S3-4: two core reasons for the rating (growth/moat/FCF/margin). S5: one valuation insight (cheap vs peers, premium but justified, etc). End with one key risk caveat.',
+      },
+      snapshotThesis: {
+        type: 'string',
+        description: 'Exactly 2 paragraphs separated by \\n\\n. Para 1: primary growth or structural driver with specific metrics. Para 2: financial strength, margins, or capital return story. One clear idea per paragraph. No blending.',
+      },
+      whyNow: {
+        type: 'string',
+        description: '2-3 bullet points, each on a new line starting with •. Each answers "why buy today" — timing catalyst: earnings momentum, valuation dislocation, macro setup, upcoming event. Be specific.',
+      },
+      snapshotRisks: {
+        type: 'string',
+        description: 'Exactly 3 risks separated by \\n\\n. Each 1-2 sentences. Each must tie directly to a thesis pillar — state the risk then state how it undermines the specific thesis point.',
+      },
+
+      // ── Full report sections ───────────────────────────────────────────────
+      investmentSummary: {
+        type: 'string',
+        description: '1 paragraph, 5-6 sentences. Open with rating, price target, upside %. Include 2-3 core reasons. 1 valuation justification (cite multiple vs peers). End with 1 key risk caveat. Write for a PM reading in 30 seconds. No filler.',
       },
       investmentThesis: {
         type: 'string',
-        description:
-          'Exactly 3 paragraphs separated by \\n\\n. Para 1: core thesis with specific recent catalyst — cite actual Q numbers (revenue, EPS, beat/miss vs consensus). Para 2: competitive moat with hard evidence — cite market share %, segment margins, or specific product metrics. Para 3: valuation entry point — cite current multiple vs peers, and why this is the right time to own it. Be precise. No filler.',
+        description: '2-3 paragraphs separated by \\n\\n. Each paragraph = one clear pillar with a label concept: growth driver, competitive moat, OR margin/FCF story. No blending of ideas within a paragraph. Each pillar cites specific metrics.',
       },
       businessOverview: {
         type: 'string',
-        description:
-          'Exactly 3 paragraphs separated by \\n\\n. Para 1: core business model and revenue segments with percentages from most recent annual report. Para 2: go-to-market strategy, key operational drivers, and recent management commentary from earnings calls. Para 3: competitive positioning — name specific competitors, cite market share data or relative growth rates. Be specific.',
+        description: '1-2 paragraphs separated by \\n\\n. What the company does, key revenue segments with percentages, business model. Concise.',
+      },
+      industryPositioning: {
+        type: 'string',
+        description: '1 paragraph. Industry growth rate/TAM, key named competitors, where this company sits (market leader/challenger/niche). Specific market share % if available.',
       },
       financialAnalysis: {
         type: 'string',
-        description:
-          'Exactly 3 paragraphs separated by \\n\\n. Para 1: most recent quarter revenue and EPS with year-over-year comparisons — cite actual numbers ($B, %). Para 2: margin trajectory with specific gross/operating/net margin figures; cite FCF and FCF margin. Para 3: balance sheet health — cite cash, debt, buyback program size, and dividend if applicable. Reference figures from the most recent earnings. No generic filler.',
+        description: '2-3 paragraphs separated by \\n\\n. Trend-focused, tied to thesis pillars. Para 1: revenue trajectory with YoY growth rates. Para 2: margin trends (gross/operating/net) and FCF quality. Para 3: balance sheet and capital allocation. Cite actual figures.',
       },
-      riskFactors: {
+      forwardOutlook: {
         type: 'string',
-        description:
-          'Exactly 3 paragraphs separated by \\n\\n. Para 1: competitive and market-share risks — name specific competitors and their recent moves. Para 2: regulatory, macro, and valuation risks — cite specific regulatory proceedings, interest rate sensitivity, or multiple compression risk. Para 3: company-specific execution risks — cite management guidance, supply chain issues, or product cycle risks with specific timelines. Quantify each risk where possible.',
+        description: '1 paragraph. Expected growth trajectory, margin direction, key forward assumptions. Bridge from historical performance to valuation entry point.',
       },
+      valuationIntro: {
+        type: 'string',
+        description: '1 short paragraph. Explain what primarily drives the valuation before the DCF output — methodology, key multiple, and how it compares to peers or historical range.',
+      },
+      catalysts: {
+        type: 'string',
+        description: '3-5 specific upcoming catalysts, each on a new line starting with •. Format: "• [Catalyst Name] — [expected impact direction]". Forward-looking events only, not news recaps.',
+      },
+      keyRisks: {
+        type: 'string',
+        description: '4-5 risks separated by \\n\\n. Each risk tied directly to a thesis pillar. State the risk name, then 1-2 sentences on how it specifically threatens the corresponding thesis point. Not generic.',
+      },
+
+      // ── Quantitative models ────────────────────────────────────────────────
       dcf: {
         type: 'object',
         required: ['intrinsicValue', 'impliedUpside', 'inputs', 'yearlyProjections'],
@@ -103,10 +152,10 @@ const TOOL_SCHEMA: Anthropic.Tool = {
             type: 'object',
             required: ['wacc', 'terminalGrowthRate', 'projectionYears', 'revenueCAGR'],
             properties: {
-              wacc: { type: 'number', description: 'Weighted average cost of capital as a percentage (e.g. 9.5 for 9.5%).' },
-              terminalGrowthRate: { type: 'number', description: 'Terminal growth rate as a percentage (e.g. 3.0 for 3%).' },
-              projectionYears: { type: 'number', description: 'Number of explicit projection years (typically 5).' },
-              revenueCAGR: { type: 'number', description: 'Projected revenue CAGR as a percentage over the projection period.' },
+              wacc: { type: 'number', description: 'WACC as a percentage.' },
+              terminalGrowthRate: { type: 'number', description: 'Terminal growth rate as a percentage.' },
+              projectionYears: { type: 'number', description: 'Number of projection years (5).' },
+              revenueCAGR: { type: 'number', description: 'Revenue CAGR over the projection period.' },
             },
           },
           yearlyProjections: {
@@ -118,7 +167,7 @@ const TOOL_SCHEMA: Anthropic.Tool = {
               properties: {
                 year: { type: 'number' },
                 revenue: { type: 'number', description: 'Revenue in billions USD.' },
-                fcf: { type: 'number', description: 'Free cash flow in billions USD.' },
+                fcf: { type: 'number', description: 'FCF in billions USD.' },
                 discountedFCF: { type: 'number', description: 'Discounted FCF in billions USD.' },
               },
             },
@@ -127,18 +176,18 @@ const TOOL_SCHEMA: Anthropic.Tool = {
       },
       scenarios: {
         type: 'array',
-        description: 'Exactly 3 scenarios: Bull, Base, Bear in that order.',
+        description: 'Exactly 3 scenarios: Bull, Base, Bear.',
         items: {
           type: 'object',
           required: ['label', 'target', 'upside', 'description', 'keyAssumptions'],
           properties: {
             label: { type: 'string', enum: ['Bull Case', 'Base Case', 'Bear Case'] },
-            target: { type: 'number', description: '12-month price target for this scenario.' },
-            upside: { type: 'number', description: 'Percent upside vs current price (negative for downside).' },
+            target: { type: 'number' },
+            upside: { type: 'number' },
             description: { type: 'string', description: 'One-sentence scenario summary.' },
             keyAssumptions: {
               type: 'array',
-              description: '3 specific quantified assumptions driving this scenario.',
+              description: '3 specific quantified assumptions.',
               items: { type: 'string' },
             },
           },
@@ -146,20 +195,19 @@ const TOOL_SCHEMA: Anthropic.Tool = {
       },
       comparables: {
         type: 'array',
-        description:
-          'The subject company plus 4–6 peer comparables. Subject company first, use actual live data provided for it.',
+        description: 'Subject company first (use live data), then 4-5 sector peers.',
         items: {
           type: 'object',
           required: ['ticker', 'name', 'price', 'marketCap', 'peForward', 'evRevenue', 'revenueGrowth', 'grossMargin'],
           properties: {
             ticker: { type: 'string' },
             name: { type: 'string' },
-            price: { type: 'string', description: 'Formatted price string e.g. "$145.32".' },
-            marketCap: { type: 'string', description: 'Formatted market cap e.g. "$2.4T" or "$180B".' },
-            peForward: { type: 'string', description: 'Forward P/E multiple e.g. "24.5x" or "N/A".' },
-            evRevenue: { type: 'string', description: 'EV/Revenue multiple e.g. "8.2x" or "N/A".' },
-            revenueGrowth: { type: 'string', description: 'Revenue growth e.g. "+18%" or "-3%".' },
-            grossMargin: { type: 'string', description: 'Gross margin e.g. "62.4%".' },
+            price: { type: 'string' },
+            marketCap: { type: 'string' },
+            peForward: { type: 'string' },
+            evRevenue: { type: 'string' },
+            revenueGrowth: { type: 'string' },
+            grossMargin: { type: 'string' },
             rating: { type: 'string', enum: ['BUY', 'OUTPERFORM', 'HOLD', 'UNDERPERFORM', 'SELL'] },
           },
         },
@@ -189,7 +237,6 @@ function buildUserPrompt(snap: StockSnapshot, researchContext: string): string {
   const fmt = (v: number | null, multiplier = 1, suffix = '') =>
     v !== null ? `${(v * multiplier).toFixed(1)}${suffix}` : 'N/A'
 
-  // Cap research context at 1,500 chars (~375 tokens) to keep total input under 20k tokens
   const cappedContext = researchContext.length > 1500
     ? researchContext.slice(0, 1500) + '…'
     : researchContext
@@ -197,10 +244,9 @@ function buildUserPrompt(snap: StockSnapshot, researchContext: string): string {
     ? `\n## Recent Research (web search)\n${cappedContext}\n`
     : ''
 
-  // Truncate description to 400 chars to avoid bloating the prompt
   const description = (snap.description || `${snap.name} operates in the ${snap.sector} sector (${snap.industry}).`).slice(0, 400)
 
-  return `Generate an institutional equity research report for ${snap.name} (${snap.ticker}).
+  return `Generate a complete institutional equity research report for ${snap.name} (${snap.ticker}).
 ${contextSection}
 ## Market Data
 - Price: $${snap.price.toFixed(2)} ${snap.currency} (${snap.changePct >= 0 ? '+' : ''}${snap.changePct.toFixed(2)}% today)
@@ -211,16 +257,32 @@ ${contextSection}
 - ${description}
 
 ## Instructions
-Use the live data and web research above. Call generate_investment_report with:
-- Specific numbers in every paragraph (cite quarters, dollar amounts, analyst firm names)
-- DCF: 5-year projections in billions USD based on actual recent growth rate
-- Comparables: subject company first (use live data), then 4–5 sector peers
-- Exactly 3 paragraphs per narrative section, separated by \\n\\n`
+Call generate_investment_report. Fill every field precisely:
+
+SNAPSHOT (compact quick-read panel):
+- businessDescription: 1 sentence, no fluff
+- snapshotSummary: 4-5 sentences — rating/PT/upside, company ID, 2 core reasons, 1 valuation insight, 1 risk caveat
+- snapshotThesis: 2 paragraphs (\\n\\n) — Para 1: growth driver, Para 2: financial/capital return story
+- whyNow: 2-3 bullet points (•) on separate lines — specific timing catalysts
+- snapshotRisks: 3 risks (\\n\\n) — each tied to a specific thesis pillar
+
+FULL REPORT (9 sections in order):
+1. investmentSummary: 1 paragraph, 5-6 sentences, PM-readable in 30 seconds
+2. investmentThesis: 2-3 paragraphs, each = one clear pillar (growth/moat/margin)
+3. businessOverview: 1-2 paragraphs, segments with percentages
+4. industryPositioning: 1 paragraph, TAM/competitors/market position
+5. financialAnalysis: 2-3 paragraphs, trend-focused, cite actual figures
+6. forwardOutlook: 1 paragraph, trajectory + margin direction + bridge to valuation
+7. valuationIntro: 1 short paragraph, methodology + key multiple vs peers
+8. catalysts: 3-5 bullets (•) — "• [Event] — [impact direction]"
+9. keyRisks: 4-5 paragraphs (\\n\\n), each tied to specific thesis pillar
+
+QUANT: DCF (5-year projections in $B), 3 scenarios, 5-6 comparables (subject first)`
 }
 
 /**
- * Phase 1: Use web search to gather recent earnings, analyst targets, and news.
- * Gracefully degrades to empty string if web search is unavailable.
+ * Phase 1: Web search for recent earnings, analyst targets, and news.
+ * Gracefully degrades to empty string if unavailable.
  */
 async function gatherResearchContext(snap: StockSnapshot): Promise<string> {
   try {
@@ -228,7 +290,6 @@ async function gatherResearchContext(snap: StockSnapshot): Promise<string> {
       { role: 'user', content: buildSearchPrompt(snap) },
     ]
 
-    // Max 2 rounds to cap token usage; 1024 tokens is plenty for a bullet-point brief
     for (let round = 0; round < 2; round++) {
       const response = await client.messages.create({
         model: 'claude-sonnet-4-20250514',
@@ -246,10 +307,8 @@ async function gatherResearchContext(snap: StockSnapshot): Promise<string> {
         return textParts.join('\n\n')
       }
 
-      // Continue multi-turn: add assistant response, then continue conversation
       messages.push({ role: 'assistant', content: response.content })
 
-      // Provide empty tool results for any tool_use blocks so the conversation can continue
       const toolUseBlocks = response.content.filter(
         (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
       )
@@ -269,7 +328,6 @@ async function gatherResearchContext(snap: StockSnapshot): Promise<string> {
 
     return ''
   } catch {
-    // Web search unavailable — report generation continues with financial data only
     return ''
   }
 }

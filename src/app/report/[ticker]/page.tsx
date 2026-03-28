@@ -90,7 +90,7 @@ export default function ReportPage() {
 
   return (
     <div className={styles.bg}>
-      <ReportNav />
+      <ReportNav ticker={ticker} />
 
       {phase.status === 'loading-brief' && (
         <TIELoader ticker={ticker} variant="brief" />

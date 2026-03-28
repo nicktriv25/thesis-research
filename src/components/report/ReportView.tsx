@@ -1,6 +1,7 @@
 import type { TIEReport } from '@/lib/types'
 import ReportHeader from './ReportHeader'
 import MetricsBar from './MetricsBar'
+import SnapshotCard from './SnapshotCard'
 import NarrativeSection from './NarrativeSection'
 import DCFSummary from './DCFSummary'
 import Scenarios from './Scenarios'
@@ -14,20 +15,26 @@ interface Props {
 
 export default function ReportView({ report }: Props) {
   return (
-    <article className={styles.page}>
+    <article id="report-content" className={styles.page}>
       <ReportHeader report={report} />
       <MetricsBar metrics={report.metrics} />
+      <SnapshotCard report={report} />
 
       <div className={styles.content}>
+        <NarrativeSection section={report.investmentSummary} />
         <NarrativeSection section={report.investmentThesis} />
         <NarrativeSection section={report.businessOverview} />
+        <NarrativeSection section={report.industryPositioning} />
+        <NarrativeSection section={report.financialAnalysis} />
+        <NarrativeSection section={report.forwardOutlook} />
 
+        <NarrativeSection section={report.valuationIntro} />
         <DCFSummary dcf={report.dcf} currentPrice={report.currentPrice} />
         <Scenarios scenarios={report.scenarios} currentPrice={report.currentPrice} />
         <Comparables comparables={report.comparables} focusTicker={report.ticker} />
 
-        <NarrativeSection section={report.financialAnalysis} />
-        <NarrativeSection section={report.riskFactors} />
+        <NarrativeSection section={report.catalysts} />
+        <NarrativeSection section={report.keyRisks} />
         <NewsSection news={report.news ?? []} />
       </div>
 

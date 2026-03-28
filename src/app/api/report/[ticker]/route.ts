@@ -82,22 +82,23 @@ export async function GET(
 
       metrics: buildMetrics(snap),
 
-      investmentThesis: {
-        title: 'Investment Thesis',
-        content: tie.investmentThesis,
-      },
-      businessOverview: {
-        title: 'Business Overview',
-        content: tie.businessOverview,
-      },
-      financialAnalysis: {
-        title: 'Financial Analysis',
-        content: tie.financialAnalysis,
-      },
-      riskFactors: {
-        title: 'Key Risks',
-        content: tie.riskFactors,
-      },
+      // Snapshot card
+      businessDescription: tie.businessDescription,
+      snapshotSummary:    { title: 'Investment Summary',  content: tie.snapshotSummary },
+      snapshotThesis:     { title: 'Investment Thesis',   content: tie.snapshotThesis },
+      whyNow:             { title: 'Why Now',             content: tie.whyNow },
+      snapshotRisks:      { title: 'Key Risks',           content: tie.snapshotRisks },
+
+      // Full report sections
+      investmentSummary:   { title: 'Investment Summary',                    content: tie.investmentSummary },
+      investmentThesis:    { title: 'Investment Thesis',                     content: tie.investmentThesis },
+      businessOverview:    { title: 'Business Overview',                     content: tie.businessOverview },
+      industryPositioning: { title: 'Industry & Competitive Positioning',    content: tie.industryPositioning },
+      financialAnalysis:   { title: 'Financial Analysis',                    content: tie.financialAnalysis },
+      forwardOutlook:      { title: 'Forward Outlook',                       content: tie.forwardOutlook },
+      valuationIntro:      { title: 'Valuation',                             content: tie.valuationIntro },
+      catalysts:           { title: 'Catalysts & Developments',              content: tie.catalysts },
+      keyRisks:            { title: 'Key Risks',                             content: tie.keyRisks },
 
       dcf: tie.dcf,
       scenarios: tie.scenarios,

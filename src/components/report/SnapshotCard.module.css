@@ -1,0 +1,136 @@
+.card {
+  background: var(--paper2);
+  border-bottom: 2px solid var(--navy);
+}
+
+.header {
+  padding: 16px 48px;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.desc {
+  font-size: 13px;
+  color: var(--ink2);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0 48px 24px;
+}
+
+.col {
+  padding-top: 20px;
+}
+
+.col:first-child {
+  padding-right: 32px;
+  border-right: 1px solid var(--rule);
+}
+
+.col:last-child {
+  padding-left: 32px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink4);
+  margin-bottom: 8px;
+}
+
+.summaryText {
+  font-size: 13px;
+  line-height: 1.72;
+  color: var(--ink2);
+}
+
+.thesisText {
+  font-size: 13px;
+  line-height: 1.72;
+  color: var(--ink2);
+  margin-top: 10px;
+}
+
+.thesisText:first-of-type {
+  margin-top: 0;
+}
+
+.bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bulletItem {
+  position: relative;
+  padding: 7px 0 7px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.bulletItem:last-child {
+  border-bottom: none;
+}
+
+.bulletItem::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  top: 8px;
+}
+
+.riskText {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink3);
+  margin-top: 10px;
+  padding-left: 10px;
+  border-left: 2px solid var(--sell-bg);
+}
+
+.riskText:first-of-type {
+  margin-top: 0;
+}
+
+@media (max-width: 700px) {
+  .header { padding: 14px 20px; flex-direction: column; gap: 4px; }
+  .grid   { grid-template-columns: 1fr; padding: 0 20px 20px; }
+  .col:first-child { padding-right: 0; border-right: none; border-bottom: 1px solid var(--rule); padding-bottom: 20px; }
+  .col:last-child  { padding-left: 0; }
+}
+
+@media print {
+  .card { background: #fff; }
+}

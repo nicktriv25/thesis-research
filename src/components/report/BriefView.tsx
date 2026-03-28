@@ -22,7 +22,7 @@ export default function BriefView({ brief, onGenerateFull, fullLoading }: Props)
   })
 
   return (
-    <article className={styles.page}>
+    <article id="report-content" className={styles.page}>
 
       {/* Header */}
       <header className={styles.header}>

@@ -16,7 +16,7 @@ export interface KeyMetric {
 export interface ScenarioCase {
   label: string
   target: number
-  upside: number  // percent vs current
+  upside: number
   description: string
   keyAssumptions: string[]
 }
@@ -54,13 +54,13 @@ export interface DCFOutput {
 
 export interface ReportSection {
   title: string
-  content: string  // markdown-compatible prose
+  content: string
 }
 
 export interface NewsItem {
   headline: string
   source: string
-  date: string   // ISO date string
+  date: string
   url: string
 }
 
@@ -84,31 +84,40 @@ export interface TIEReport {
   exchange: string
   companyName: string
   sector: string
-  reportType: string   // "Initiation of Coverage" | "Update" | "Deep Dive"
-  generatedAt: string  // ISO date
+  reportType: string
+  generatedAt: string
 
   // Verdict
   rating: Rating
   priceTarget: PriceTarget
   currentPrice: number
-
-  // Key metrics (header bar)
   metrics: KeyMetric[]
 
-  // Main narrative sections
+  // Snapshot card (compact quick-read panel)
+  businessDescription: string
+  snapshotSummary: ReportSection
+  snapshotThesis: ReportSection
+  whyNow: ReportSection
+  snapshotRisks: ReportSection
+
+  // Full report sections (in display order)
+  investmentSummary: ReportSection
   investmentThesis: ReportSection
   businessOverview: ReportSection
+  industryPositioning: ReportSection
   financialAnalysis: ReportSection
-  riskFactors: ReportSection
+  forwardOutlook: ReportSection
+  valuationIntro: ReportSection
+  catalysts: ReportSection
+  keyRisks: ReportSection
 
-  // Quantitative
+  // Quantitative models
   dcf: DCFOutput
   scenarios: ScenarioCase[]
   comparables: Comparable[]
 
-  // Recent news (may be empty if Polygon returns nothing)
+  // News
   news: NewsItem[]
 }
 
-// Placeholder / loading state
 export const EMPTY_REPORT: Partial<TIEReport> = {}

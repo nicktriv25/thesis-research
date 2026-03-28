@@ -9,7 +9,11 @@ interface SearchResult {
   n: string
 }
 
-export default function ReportNav() {
+interface Props {
+  ticker?: string
+}
+
+export default function ReportNav({ ticker: tickerProp }: Props = {}) {
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
@@ -64,8 +68,34 @@ export default function ReportNav() {
     }
   }
 
-  const handlePrint = () => {
-    window.print()
+  const handleDownloadPDF = async () => {
+    const html2pdf = (await import('html2pdf.js')).default
+    const element = document.getElementById('report-content')
+    if (!element) return
+
+    const filename = tickerProp
+      ? `Thesis_${tickerProp}_Report.pdf`
+      : 'Thesis_Report.pdf'
+
+    const opt = {
+      margin: [0.4, 0.5, 0.6, 0.5] as [number, number, number, number],
+      filename,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        letterRendering: true,
+        scrollY: 0,
+      },
+      jsPDF: {
+        unit: 'in',
+        format: 'letter',
+        orientation: 'portrait' as const,
+      },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    }
+
+    html2pdf().set(opt).from(element).save()
   }
 
   return (
@@ -118,7 +148,7 @@ export default function ReportNav() {
           )}
         </button>
 
-        <button className={styles.actionBtn} onClick={handlePrint} title="Download as PDF">
+        <button className={styles.actionBtn} onClick={handleDownloadPDF} title="Download as PDF">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 6 2 18 2 18 9"/>
             <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
