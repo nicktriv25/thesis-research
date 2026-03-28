@@ -130,3 +130,29 @@ input {
   background-size: 200% auto;
   animation: shimmer 1.5s linear infinite;
 }
+
+/* Print styles for PDF export */
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    background: #fff !important;
+    font-size: 11pt;
+  }
+
+  /* Show report at full width without shadow */
+  article {
+    max-width: 100% !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+
+  /* Avoid page breaks inside sections */
+  section, table, figure { page-break-inside: avoid; }
+
+  /* Page setup */
+  @page {
+    margin: 18mm 16mm;
+    size: letter;
+  }
+}
