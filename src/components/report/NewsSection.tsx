@@ -16,7 +16,7 @@ export default function NewsSection({ news }: Props) {
 
   return (
     <div className={styles.wrap}>
-      <h2 className={styles.title}>Recent News</h2>
+      <h2 className={styles.title}>Recent News & Developments</h2>
       <ul className={styles.list}>
         {news.map((item, i) => (
           <li key={i} className={styles.item}>
