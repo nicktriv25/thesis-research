@@ -12,15 +12,17 @@ interface PolyTickerResult {
 // Only surface results from major US equity exchanges (MIC codes)
 const MAJOR_MIC = new Set(['XNAS', 'XNYS', 'ARCX', 'XASE', 'BATS'])
 
-// Keywords in company names that indicate ETFs / leveraged products — deprioritize
-const ETF_KEYWORDS = [
-  'ETF', 'Trust', 'Direxion', 'YieldMax', 'GraniteShares',
-  'Roundhill', 'Kurv', 'T-Rex', 'ProShares',
+// Names containing these terms are filtered OUT entirely from fuzzy results
+// (only allowed through if the user typed the exact ticker)
+const JUNK_KEYWORDS = [
+  'ETF', 'TRUST', 'DIREXION', 'YIELDMAX', 'GRANITESHARES',
+  'ROUNDHILL', 'KURV', 'T-REX', 'PROSHARES', 'DEPOSITORY',
+  'WARRANT', ' UNIT', 'LEVERAGED', 'ULTRASHORT', 'ULTRAPRO',
 ]
 
-function isEtfLike(name: string): boolean {
+function isJunk(name: string): boolean {
   const upper = name.toUpperCase()
-  return ETF_KEYWORDS.some(kw => upper.includes(kw.toUpperCase()))
+  return JUNK_KEYWORDS.some(kw => upper.includes(kw))
 }
 
 function rankResult(ticker: string, name: string, query: string): number {
@@ -28,16 +30,11 @@ function rankResult(ticker: string, name: string, query: string): number {
   const n = name.toUpperCase()
   const q = query.toUpperCase()
 
-  // Exact ticker match
-  if (t === q) return 0
-  // Ticker starts with query
-  if (t.startsWith(q)) return 1
-  // Company name starts with query
-  if (n.startsWith(q)) return 2
-  // Ticker contains query
-  if (t.includes(q)) return 3
-  // Name contains query
-  return 4
+  if (t === q)          return 0  // exact ticker match
+  if (t.startsWith(q)) return 1  // ticker starts with query
+  if (t.includes(q))   return 2  // ticker contains query
+  if (n.startsWith(q)) return 3  // company name starts with query
+  return 4                        // name contains query (catch-all)
 }
 
 export const dynamic = 'force-dynamic'
@@ -50,7 +47,7 @@ export async function GET(req: NextRequest) {
   if (!key) return NextResponse.json([])
 
   try {
-    const url = `https://api.polygon.io/v3/reference/tickers?search=${encodeURIComponent(q)}&active=true&market=stocks&limit=20&apiKey=${key}`
+    const url = `https://api.polygon.io/v3/reference/tickers?search=${encodeURIComponent(q)}&active=true&market=stocks&limit=30&apiKey=${key}`
     const res = await fetch(url, { cache: 'no-store' })
     if (!res.ok) return NextResponse.json([])
 
@@ -59,11 +56,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([])
     }
 
+    const qUpper = q.toUpperCase()
+
     const results = ((data as { results: PolyTickerResult[] }).results)
       .filter(item => {
         if (!item.ticker || item.active === false) return false
+        // Restrict to major US exchanges
         const ex = item.primary_exchange ?? ''
-        return ex === '' || MAJOR_MIC.has(ex)
+        if (ex !== '' && !MAJOR_MIC.has(ex)) return false
+        // Hard-filter junk (ETFs, warrants, units, leveraged products)
+        // unless the user typed the exact ticker
+        const name = item.name ?? ''
+        if (isJunk(name) && item.ticker.toUpperCase() !== qUpper) return false
+        return true
       })
       .map(item => {
         const name = item.name ?? item.ticker
@@ -71,14 +76,9 @@ export async function GET(req: NextRequest) {
           t: item.ticker,
           n: name,
           _rank: rankResult(item.ticker, name, q),
-          _etf: isEtfLike(name) ? 1 : 0,
         }
       })
-      .sort((a, b) => {
-        // ETF-like items always sink below common stocks at the same rank
-        if (a._etf !== b._etf) return a._etf - b._etf
-        return a._rank - b._rank
-      })
+      .sort((a, b) => a._rank - b._rank)
       .slice(0, 5)
       .map(({ t, n }) => ({ t, n }))
 
