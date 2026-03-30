@@ -6,7 +6,6 @@ import Stats from '@/components/landing/Stats'
 import TickerTape from '@/components/landing/TickerTape'
 import Pillars from '@/components/landing/Pillars'
 import PreviewCard from '@/components/landing/PreviewCard'
-import EarningsCalendar from '@/components/landing/EarningsCalendar'
 import styles from './LandingPage.module.css'
 
 export default function LandingPage() {
@@ -21,8 +20,6 @@ export default function LandingPage() {
       <TickerTape />
       <Pillars />
       <PreviewCard />
-      <EarningsCalendar />
-
       <footer className={styles.footer}>
         <span className={styles.footerBrand}>Thesis © 2026</span>
         <div className={styles.footerLinks}>
