@@ -71,6 +71,9 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
       ? `Thesis_${tickerProp}_Report.pdf`
       : 'Thesis_Report.pdf'
 
+    // Scroll to top so html2canvas captures from the correct position
+    window.scrollTo(0, 0)
+
     const opt = {
       margin: [0.4, 0.5, 0.6, 0.5] as [number, number, number, number],
       filename,
@@ -79,7 +82,7 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
         scale: 2,
         useCORS: true,
         letterRendering: true,
-        scrollY: 0,
+        scrollY: -window.scrollY,
       },
       jsPDF: {
         unit: 'in',
