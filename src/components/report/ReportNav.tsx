@@ -13,12 +13,20 @@ interface Props {
   ticker?: string
 }
 
+const ETF_INDICATORS = ['ETF', 'FUND', 'TRUST', 'INDEX', 'ISHARES', 'SPDR', 'INVESCO', 'VANGUARD']
+
+function isEtfLike(name: string): boolean {
+  const u = name.toUpperCase()
+  return ETF_INDICATORS.some(kw => u.includes(kw))
+}
+
 export default function ReportNav({ ticker: tickerProp }: Props = {}) {
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [etfWarning, setEtfWarning] = useState(false)
   const controllerRef = useRef<AbortController | null>(null)
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -51,7 +59,13 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
     }
   }, [])
 
-  const navigate = (ticker: string) => {
+  const navigate = (ticker: string, name?: string) => {
+    if (name && isEtfLike(name)) {
+      setEtfWarning(true)
+      setOpen(true)
+      return
+    }
+    setEtfWarning(false)
     setQuery('')
     setOpen(false)
     router.push(`/report/${ticker}`)
@@ -120,11 +134,15 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
         />
         {open && (
           <div className={styles.dropdown}>
-            {results.map(t => (
+            {etfWarning ? (
+              <div className={styles.etfWarning}>
+                Thesis generates equity research reports for individual companies. ETFs and funds are not supported.
+              </div>
+            ) : results.map(t => (
               <div
                 key={t.t}
                 className={styles.result}
-                onMouseDown={() => navigate(t.t)}
+                onMouseDown={() => navigate(t.t, t.n)}
               >
                 <span className={styles.rTicker}>{t.t}</span>
                 <span className={styles.rName}>{t.n}</span>

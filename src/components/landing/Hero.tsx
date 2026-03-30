@@ -9,11 +9,19 @@ interface SearchResult {
   n: string
 }
 
+const ETF_INDICATORS = ['ETF', 'FUND', 'TRUST', 'INDEX', 'ISHARES', 'SPDR', 'INVESCO', 'VANGUARD']
+
+function isEtfLike(name: string): boolean {
+  const u = name.toUpperCase()
+  return ETF_INDICATORS.some(kw => u.includes(kw))
+}
+
 export default function Hero() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [open, setOpen] = useState(false)
   const [searching, setSearching] = useState(false)
+  const [etfWarning, setEtfWarning] = useState(false)
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -39,7 +47,13 @@ export default function Hero() {
     return () => { clearTimeout(timer); controller.abort() }
   }, [query])
 
-  const navigate = (ticker: string) => {
+  const navigate = (ticker: string, name?: string) => {
+    if (name && isEtfLike(name)) {
+      setEtfWarning(true)
+      setOpen(true)
+      return
+    }
+    setEtfWarning(false)
     router.push(`/report/${ticker.toUpperCase()}`)
   }
 
@@ -87,11 +101,15 @@ export default function Hero() {
 
         {open && (
           <div className={styles.dropdown}>
-            {results.length > 0 ? results.map(t => (
+            {etfWarning ? (
+              <div className={styles.etfError}>
+                Thesis generates equity research reports for individual companies. ETFs and funds are not supported.
+              </div>
+            ) : results.length > 0 ? results.map(t => (
               <div
                 key={t.t}
                 className={styles.result}
-                onMouseDown={() => navigate(t.t)}
+                onMouseDown={() => navigate(t.t, t.n)}
               >
                 <span className={styles.rTicker}>{t.t}</span>
                 <span className={styles.rName}>{t.n}</span>
@@ -105,9 +123,6 @@ export default function Hero() {
           </div>
         )}
 
-        <p className={styles.hint}>
-          Press <kbd>Enter</kbd> to generate report
-        </p>
       </div>
     </section>
   )

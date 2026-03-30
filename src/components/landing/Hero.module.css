@@ -57,6 +57,7 @@
   max-width: 560px;
   margin: 0 auto;
   position: relative;
+  z-index: 9999;
 }
 
 .searchIcon {
@@ -64,10 +65,11 @@
   left: 18px;
   top: 50%;
   transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: var(--ink4);
   pointer-events: none;
+  display: block;
 }
 
 .searchInput {
@@ -96,12 +98,22 @@
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: #fff;
+  background: #ffffff;
   border: 1.5px solid var(--rule);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-  z-index: 50;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.16);
+  z-index: 9999;
+}
+
+.etfError {
+  padding: 12px 20px;
+  font-size: 13px;
+  color: var(--ink3);
+  font-family: var(--font-mono);
+  line-height: 1.5;
+  text-align: left;
+  background: #ffffff;
 }
 
 .result {
@@ -148,24 +160,6 @@
   font-family: var(--font-mono);
 }
 
-/* Hint */
-.hint {
-  margin-top: 10px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--ink4);
-}
-
-.hint kbd {
-  background: var(--paper2);
-  border: 1px solid var(--rule);
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-size: 10px;
-  margin: 0 2px;
-  font-family: var(--font-mono);
-  color: var(--ink3);
-}
 
 @media (max-width: 700px) {
   .hero { padding: 60px 20px 40px; }
