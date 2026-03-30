@@ -18,11 +18,17 @@ const JUNK_KEYWORDS = [
   'ETF', 'TRUST', 'DIREXION', 'YIELDMAX', 'GRANITESHARES',
   'ROUNDHILL', 'KURV', 'T-REX', 'PROSHARES', 'DEPOSITORY',
   'WARRANT', ' UNIT', 'LEVERAGED', 'ULTRASHORT', 'ULTRAPRO',
+  'DEBENTURE', 'PREFERRED', ' SERIES ',
 ]
 
 function isJunk(name: string): boolean {
   const upper = name.toUpperCase()
   return JUNK_KEYWORDS.some(kw => upper.includes(kw))
+}
+
+// Only allow clean common-stock tickers: 1–5 uppercase letters, optional . + 1–2 uppercase letters
+function isCleanTicker(ticker: string): boolean {
+  return /^[A-Z]{1,5}(\.[A-Z]{1,2})?$/.test(ticker)
 }
 
 function rankResult(ticker: string, name: string, query: string): number {
@@ -61,10 +67,12 @@ export async function GET(req: NextRequest) {
     const results = ((data as { results: PolyTickerResult[] }).results)
       .filter(item => {
         if (!item.ticker || item.active === false) return false
+        // Only allow clean common-stock ticker format (no lowercase, no digits)
+        if (!isCleanTicker(item.ticker)) return false
         // Restrict to major US exchanges
         const ex = item.primary_exchange ?? ''
         if (ex !== '' && !MAJOR_MIC.has(ex)) return false
-        // Hard-filter junk (ETFs, warrants, units, leveraged products)
+        // Hard-filter junk (ETFs, warrants, preferred, debentures, etc.)
         // unless the user typed the exact ticker
         const name = item.name ?? ''
         if (isJunk(name) && item.ticker.toUpperCase() !== qUpper) return false
