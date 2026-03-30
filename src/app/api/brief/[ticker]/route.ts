@@ -58,14 +58,11 @@ export async function GET(
       },
       currentPrice: snap.price,
       metrics: buildMetrics(snap),
-      investmentThesis: {
-        title: 'Investment Thesis',
-        content: brief.investmentThesis,
-      },
-      topRisks: {
-        title: 'Key Risks',
-        content: brief.topRisks,
-      },
+      businessDescription: brief.businessDescription,
+      investmentSummary: { title: 'Investment Summary', content: brief.investmentSummary },
+      investmentThesis:  { title: 'Investment Thesis',  content: brief.investmentThesis  },
+      whyNow:            { title: 'Why Now',             content: brief.whyNow            },
+      topRisks:          { title: 'Key Risks',           content: brief.topRisks          },
     }
 
     return NextResponse.json(report)

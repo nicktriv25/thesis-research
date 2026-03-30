@@ -338,10 +338,10 @@ const BRIEF_TOOL_NAME = 'generate_research_brief'
 
 const BRIEF_TOOL_SCHEMA: Anthropic.Tool = {
   name: BRIEF_TOOL_NAME,
-  description: 'Generate a fast research brief with rating, price target, investment thesis, and top risks.',
+  description: 'Generate a fast research brief snapshot with 5 structured blocks.',
   input_schema: {
     type: 'object' as const,
-    required: ['rating', 'priceTarget', 'investmentThesis', 'topRisks'],
+    required: ['rating', 'priceTarget', 'businessDescription', 'investmentSummary', 'investmentThesis', 'whyNow', 'topRisks'],
     properties: {
       rating: {
         type: 'string',
@@ -357,13 +357,25 @@ const BRIEF_TOOL_SCHEMA: Anthropic.Tool = {
           bear: { type: 'number', description: '12-month bear case price target.' },
         },
       },
+      businessDescription: {
+        type: 'string',
+        description: 'One sentence: what the company does + its key competitive position. No filler, no "is a company that". Start directly with what it does.',
+      },
+      investmentSummary: {
+        type: 'string',
+        description: '4-5 sentences. S1: rating + price target + upside %. S2: one-line company identifier. S3-S4: two core reasons for the rating (growth driver, moat, FCF, margin). S5: one valuation insight vs peers. End with one key risk caveat. Write for a PM reading in 30 seconds.',
+      },
       investmentThesis: {
         type: 'string',
-        description: 'Exactly 2 paragraphs separated by \\n\\n. Para 1: core thesis with specific catalyst, citing actual metrics (revenue, margins, growth rates). Para 2: valuation setup and why now — cite current multiple vs peers.',
+        description: 'Exactly 2 short paragraphs separated by \\n\\n. Para 1: primary growth driver or structural tailwind with specific metrics. Para 2: financial strength, margin profile, or capital return story. One clear idea per paragraph. No blending. No walls of text.',
+      },
+      whyNow: {
+        type: 'string',
+        description: '2-3 bullet points, each on a new line starting with •. Each is one sentence answering "why buy today" — a specific timing catalyst: valuation dislocation, earnings momentum, upcoming event, macro setup. Be specific and forward-looking.',
       },
       topRisks: {
         type: 'string',
-        description: 'Exactly 2 paragraphs separated by \\n\\n. Para 1: key competitive and macro risks, quantified. Para 2: company-specific execution risks with specific timelines or figures.',
+        description: 'Exactly 3 risks, each separated by \\n\\n. Each risk is 1-2 sentences. Each must directly tie to a thesis pillar — state the risk then state how it specifically threatens the corresponding thesis point. Not generic boilerplate.',
       },
     },
   },
@@ -372,7 +384,10 @@ const BRIEF_TOOL_SCHEMA: Anthropic.Tool = {
 export interface TIEBriefAnalysis {
   rating: Rating
   priceTarget: { base: number; bull: number; bear: number }
+  businessDescription: string
+  investmentSummary: string
   investmentThesis: string
+  whyNow: string
   topRisks: string
 }
 
@@ -382,7 +397,7 @@ function buildBriefPrompt(snap: StockSnapshot): string {
 
   const description = (snap.description || `${snap.name} operates in the ${snap.sector} sector.`).slice(0, 300)
 
-  return `Write a research brief for ${snap.name} (${snap.ticker}).
+  return `Generate a research brief snapshot for ${snap.name} (${snap.ticker}).
 
 ## Market Data
 - Price: $${snap.price.toFixed(2)} ${snap.currency} | Mkt Cap: $${(snap.marketCap / 1e9).toFixed(1)}B
@@ -391,13 +406,20 @@ function buildBriefPrompt(snap: StockSnapshot): string {
 - Rev Growth: ${fmt(snap.revenueGrowth, 100, '%')} | Gross Margin: ${fmt(snap.grossMargin, 100, '%')}
 - ${description}
 
-Call generate_research_brief. Each narrative field: exactly 2 paragraphs separated by \\n\\n. Cite specific numbers.`
+Call generate_research_brief with all 5 snapshot blocks:
+1. businessDescription: 1 sentence, no filler, start with what it does
+2. investmentSummary: 4-5 sentences — rating/PT/upside, company ID, 2 core reasons, valuation insight vs peers, 1 risk caveat
+3. investmentThesis: 2 paragraphs (\\n\\n) — Para 1: growth driver with metrics, Para 2: financial/margin story
+4. whyNow: 2-3 bullets (•) on separate lines — specific timing catalysts only
+5. topRisks: 3 risks (\\n\\n) — each 1-2 sentences, each tied to a thesis pillar
+
+Cite specific numbers throughout. No generic language.`
 }
 
 export async function generateTIEBrief(snap: StockSnapshot): Promise<TIEBriefAnalysis> {
   const response = await client.messages.create({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: 1500,
+    max_tokens: 2500,
     system: buildSystemPrompt(),
     tools: [BRIEF_TOOL_SCHEMA],
     tool_choice: { type: 'tool', name: BRIEF_TOOL_NAME },

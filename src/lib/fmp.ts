@@ -103,22 +103,60 @@ function deriveExchange(mic: string): string {
 function deriveSector(sicCode: string | undefined): string {
   if (!sicCode) return 'Unknown'
   const code = parseInt(sicCode, 10)
-  if (code >= 100 && code <= 999) return 'Agriculture'
-  if (code >= 1000 && code <= 1499) return 'Energy & Mining'
-  if (code >= 1500 && code <= 3999) return 'Industrials'
-  if (code >= 4000 && code <= 4499) return 'Industrials'
-  if (code >= 4500 && code <= 4599) return 'Industrials'
-  if (code >= 4600 && code <= 4899) return 'Communication Services'
-  if (code >= 4900 && code <= 4999) return 'Utilities'
-  if (code >= 5000 && code <= 5999) return 'Consumer Discretionary'
-  if (code >= 6000 && code <= 6411) return 'Financials'
-  if (code >= 6500 && code <= 6799) return 'Real Estate'
-  if (code >= 7000 && code <= 7099) return 'Consumer Discretionary'
-  if (code >= 7370 && code <= 7379) return 'Information Technology'
-  if (code >= 7380 && code <= 7389) return 'Information Technology'
-  if (code >= 7812 && code <= 7812) return 'Communication Services'
-  if (code >= 8000 && code <= 8099) return 'Health Care'
-  if (code >= 8700 && code <= 8742) return 'Information Technology'
+
+  // Agriculture
+  if (code >= 100   && code <= 999)  return 'Agriculture'
+  // Mining & Energy
+  if (code >= 1000  && code <= 1499) return 'Energy & Mining'
+  // Oil & Gas extraction
+  if (code >= 1300  && code <= 1399) return 'Energy'
+  // Construction
+  if (code >= 1500  && code <= 1799) return 'Industrials'
+  // Pharma & Biotech (within manufacturing)
+  if (code >= 2830  && code <= 2836) return 'Health Care'
+  if (code >= 2860  && code <= 2869) return 'Health Care'
+  // Electronic Computers & Peripherals
+  if (code >= 3570  && code <= 3579) return 'Information Technology'
+  // Semiconductors & Electronic Components
+  if (code >= 3600  && code <= 3699) return 'Information Technology'
+  // Semiconductor equipment (e.g. AMAT, LRCX, KLAC)
+  if (code >= 3559  && code <= 3559) return 'Information Technology'
+  // Electromedical / medical devices
+  if (code >= 3840  && code <= 3849) return 'Health Care'
+  // Optical instruments / scientific instruments
+  if (code >= 3820  && code <= 3829) return 'Information Technology'
+  // Remaining manufacturing → Industrials
+  if (code >= 2000  && code <= 3999) return 'Industrials'
+  // Transportation
+  if (code >= 4000  && code <= 4499) return 'Industrials'
+  // Air transport
+  if (code >= 4500  && code <= 4599) return 'Industrials'
+  // Telecom / cable
+  if (code >= 4600  && code <= 4899) return 'Communication Services'
+  // Telecom carriers
+  if (code >= 4810  && code <= 4813) return 'Communication Services'
+  // Utilities
+  if (code >= 4900  && code <= 4999) return 'Utilities'
+  // Wholesale & Retail Trade
+  if (code >= 5000  && code <= 5199) return 'Industrials'
+  if (code >= 5200  && code <= 5999) return 'Consumer Discretionary'
+  // Financials
+  if (code >= 6000  && code <= 6411) return 'Financials'
+  // Real Estate
+  if (code >= 6500  && code <= 6799) return 'Real Estate'
+  // Hotels / Hospitality
+  if (code >= 7000  && code <= 7099) return 'Consumer Discretionary'
+  // Software & IT Services
+  if (code >= 7370  && code <= 7379) return 'Information Technology'
+  if (code >= 7380  && code <= 7389) return 'Information Technology'
+  // Motion pictures / entertainment
+  if (code >= 7812  && code <= 7812) return 'Communication Services'
+  // Health Care services
+  if (code >= 8000  && code <= 8099) return 'Health Care'
+  if (code >= 8010  && code <= 8099) return 'Health Care'
+  // Engineering & Management Services
+  if (code >= 8700  && code <= 8742) return 'Information Technology'
+
   return 'Other'
 }
 

@@ -33,7 +33,6 @@ export default function ReportHeader({ report }: Props) {
         <div className={styles.identity}>
           <div className={styles.exchange}>{report.exchange}: {report.ticker}</div>
           <h1 className={styles.company}>{report.companyName}</h1>
-          <p className={styles.sector}>{report.sector}</p>
         </div>
 
         <div className={`${styles.ratingBox} ${styles[cls]}`}>

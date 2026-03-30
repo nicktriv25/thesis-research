@@ -63,10 +63,13 @@
   letter-spacing: -0.5px;
 }
 
-.sector {
-  font-size: 14px;
+.businessDesc {
+  font-size: 13px;
   color: var(--ink3);
-  margin-top: 6px;
+  margin-top: 8px;
+  font-style: italic;
+  line-height: 1.5;
+  max-width: 480px;
 }
 
 /* Rating box */
@@ -107,10 +110,102 @@
 .hold .ratingLabel, .hold .ratingAction, .hold .ratingTarget { color: var(--hold); }
 .sell .ratingLabel, .sell .ratingAction, .sell .ratingTarget { color: var(--sell); }
 
-/* ─── Narrative ──────────────────────────────────────────────────────────── */
+/* ─── Snapshot Content ───────────────────────────────────────────────────── */
 
 .content {
   padding: 36px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.sectionLabel {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+/* Investment Summary — blue-tinted card */
+.summaryCard {
+  background: #f0f4f8;
+  border-left: 3px solid #0c1e30;
+  padding: 18px 20px;
+  border-radius: 2px;
+}
+
+.summaryText {
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--ink2);
+}
+
+/* Generic section wrapper */
+.section {}
+
+/* Body text — Investment Thesis paragraphs */
+.bodyText {
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--ink2);
+  margin-bottom: 14px;
+}
+
+.bodyText:last-child {
+  margin-bottom: 0;
+}
+
+/* Why Now — accent dot bullets */
+.whyNowList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.whyNowItem {
+  position: relative;
+  padding: 8px 0 8px 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink2);
+  border-bottom: 1px solid var(--rule);
+}
+
+.whyNowItem:last-child {
+  border-bottom: none;
+}
+
+.whyNowItem::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.7;
+}
+
+/* Key Risks */
+.riskText {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink3);
+  margin-bottom: 12px;
+  padding-left: 12px;
+  border-left: 2px solid var(--sell-bg);
+}
+
+.riskText:last-child {
+  margin-bottom: 0;
 }
 
 /* ─── CTA ────────────────────────────────────────────────────────────────── */

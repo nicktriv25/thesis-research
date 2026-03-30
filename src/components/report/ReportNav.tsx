@@ -25,10 +25,8 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [open, setOpen] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [etfWarning, setEtfWarning] = useState(false)
   const controllerRef = useRef<AbortController | null>(null)
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const q = query.trim()
@@ -52,13 +50,6 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
     return () => clearTimeout(timer)
   }, [query])
 
-  // Clean up copy timer on unmount
-  useEffect(() => {
-    return () => {
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
-    }
-  }, [])
-
   const navigate = (ticker: string, name?: string) => {
     if (name && isEtfLike(name)) {
       setEtfWarning(true)
@@ -69,17 +60,6 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
     setQuery('')
     setOpen(false)
     router.push(`/report/${ticker}`)
-  }
-
-  const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-      setCopied(true)
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
-      copyTimerRef.current = setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard API unavailable — no-op
-    }
   }
 
   const handleDownloadPDF = async () => {
@@ -153,19 +133,6 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
       </div>
 
       <div className={styles.actions}>
-        <button className={styles.actionBtn} onClick={handleShare} title="Copy link to clipboard">
-          {copied ? <span className={styles.copied}>Copied!</span> : (
-            <>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                <polyline points="16 6 12 2 8 6"/>
-                <line x1="12" y1="2" x2="12" y2="15"/>
-              </svg>
-              Share
-            </>
-          )}
-        </button>
-
         <button className={styles.actionBtn} onClick={handleDownloadPDF} title="Download as PDF">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 6 2 18 2 18 9"/>

@@ -74,7 +74,11 @@ export interface TIEBriefReport {
   priceTarget: PriceTarget
   currentPrice: number
   metrics: KeyMetric[]
+  // Snapshot blocks
+  businessDescription: string
+  investmentSummary: ReportSection
   investmentThesis: ReportSection
+  whyNow: ReportSection
   topRisks: ReportSection
 }
 
