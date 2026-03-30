@@ -102,8 +102,9 @@
   border: 1.5px solid var(--rule);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   z-index: 9999;
+  isolation: isolate;
 }
 
 .etfError {
