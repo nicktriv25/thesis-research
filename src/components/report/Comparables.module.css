@@ -85,14 +85,14 @@
 
 /* Highlighted row (the subject company) */
 .focusRow td {
-  background: rgba(42, 90, 140, 0.05) !important;
+  background: color-mix(in srgb, var(--accent) 5%, transparent) !important;
   font-weight: 600;
 }
 
 .focusRow .ticker {
-  color: #2a5a8c;
+  color: var(--accent);
 }
 
 /* Color coding */
-.positive { color: #0a6e3a !important; }
-.negative { color: #9a1b1b !important; }
+.positive { color: var(--buy) !important; }
+.negative { color: var(--sell) !important; }

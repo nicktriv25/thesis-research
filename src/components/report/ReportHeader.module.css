@@ -30,13 +30,12 @@
   gap: 24px;
 }
 
-.identity {}
 
 .exchange {
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 600;
-  color: #2a5a8c;
+  color: var(--accent);
   letter-spacing: 1px;
   margin-bottom: 6px;
 }
@@ -50,11 +49,6 @@
   letter-spacing: -0.5px;
 }
 
-.sector {
-  font-size: 14px;
-  color: var(--ink3);
-  margin-top: 6px;
-}
 
 /* Rating box */
 .ratingBox {

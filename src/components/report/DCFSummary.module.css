@@ -21,7 +21,7 @@
 
 .verdict {
   background: var(--blue-tint);
-  border: 1px solid #c8d8e8;
+  border: 1px solid var(--rule);
   border-radius: 6px;
   padding: 20px 28px;
   text-align: center;

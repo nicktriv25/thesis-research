@@ -74,7 +74,8 @@
   background: #fff;
   border: 1px solid var(--rule);
   border-radius: 6px;
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 320px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   z-index: 9999;
 }
@@ -147,13 +148,6 @@
   color: var(--accent);
 }
 
-.copied {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--green);
-}
 
 .back {
   margin-left: auto;

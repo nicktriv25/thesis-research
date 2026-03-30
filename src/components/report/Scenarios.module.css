@@ -24,9 +24,9 @@
   border: 1px solid;
 }
 
-.bull { background: #f0faf5; border-color: #b8e4cc; }
-.base { background: var(--blue-tint); border-color: #c8d8e8; }
-.bear { background: #fdf3f3; border-color: #e8c4c4; }
+.bull { background: var(--buy-bg); border-color: var(--buy); }
+.base { background: var(--blue-tint); border-color: var(--rule); }
+.bear { background: var(--sell-bg); border-color: var(--sell); }
 
 .cardHeader {
   margin-bottom: 12px;
@@ -58,7 +58,7 @@
 }
 
 .bull .caseUpside { color: var(--buy); }
-.base .caseUpside { color: #2a5a8c; }
+.base .caseUpside { color: var(--accent); }
 .bear .caseUpside { color: var(--sell); }
 
 .caseDesc {

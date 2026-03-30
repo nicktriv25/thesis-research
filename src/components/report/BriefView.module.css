@@ -131,8 +131,8 @@
 
 /* Investment Summary — blue-tinted card */
 .summaryCard {
-  background: #f0f4f8;
-  border-left: 3px solid #0c1e30;
+  background: var(--blue-tint);
+  border-left: 3px solid var(--navy);
   padding: 18px 20px;
   border-radius: 2px;
 }
