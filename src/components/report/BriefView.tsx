@@ -14,12 +14,16 @@ const ratingClass: Record<string, string> = {
   BUY: 'buy', HOLD: 'hold', SELL: 'sell',
 }
 
+function normalize(text: string): string {
+  return text.replace(/\\n/g, '\n')
+}
+
 function parseParagraphs(text: string): string[] {
-  return text.split('\n\n').map(p => p.trim()).filter(Boolean)
+  return normalize(text).split('\n\n').map(p => p.trim()).filter(Boolean)
 }
 
 function parseBullets(text: string): string[] {
-  return text
+  return normalize(text)
     .split('\n')
     .map(l => l.trim())
     .filter(l => l.startsWith('•'))
@@ -104,8 +108,8 @@ export default function BriefView({ brief, onGenerateFull, fullLoading }: Props)
 
       </div>
 
-      {/* CTA — upgrade to full report */}
-      <div className={styles.cta}>
+      {/* CTA — upgrade to full report (excluded from PDF) */}
+      <div className={styles.cta} data-pdf-exclude="true">
         <div className={styles.ctaInner}>
           <div className={styles.ctaLeft}>
             <p className={styles.ctaLabel}>Full Institutional Report</p>

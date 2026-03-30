@@ -71,8 +71,10 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
       ? `Thesis_${tickerProp}_Report.pdf`
       : 'Thesis_Report.pdf'
 
-    // Scroll to top so html2canvas captures from the correct position
+    // Scroll to top and remove min-height so the PDF has no blank space
     window.scrollTo(0, 0)
+    const prevMinHeight = element.style.minHeight
+    element.style.minHeight = 'unset'
 
     const opt = {
       margin: [0.4, 0.5, 0.6, 0.5] as [number, number, number, number],
@@ -82,7 +84,9 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
         scale: 2,
         useCORS: true,
         letterRendering: true,
-        scrollY: -window.scrollY,
+        scrollY: 0,
+        // Exclude elements marked data-pdf-exclude (e.g. the CTA block)
+        ignoreElements: (el: Element) => el.hasAttribute('data-pdf-exclude'),
       },
       jsPDF: {
         unit: 'in',
@@ -92,7 +96,8 @@ export default function ReportNav({ ticker: tickerProp }: Props = {}) {
       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
     }
 
-    html2pdf().set(opt).from(element).save()
+    await html2pdf().set(opt).from(element).save()
+    element.style.minHeight = prevMinHeight
   }
 
   return (

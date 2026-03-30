@@ -6,8 +6,9 @@ interface Props {
 }
 
 export default function NarrativeSection({ section }: Props) {
-  // Split on double newlines for paragraph rendering
-  const paragraphs = section.content.split('\n\n').filter(Boolean)
+  // Normalize literal \n escape sequences the AI sometimes outputs, then split on double newlines
+  const normalized = section.content.replace(/\\n/g, '\n')
+  const paragraphs = normalized.split('\n\n').filter(Boolean)
 
   return (
     <div className={styles.wrap}>

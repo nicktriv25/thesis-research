@@ -5,8 +5,12 @@ interface Props {
   report: TIEReport
 }
 
+function normalize(text: string): string {
+  return text.replace(/\\n/g, '\n')
+}
+
 function parseBullets(content: string): string[] {
-  return content
+  return normalize(content)
     .split('\n')
     .map(l => l.trim())
     .filter(l => l.startsWith('•'))
@@ -14,7 +18,7 @@ function parseBullets(content: string): string[] {
 }
 
 function parseParagraphs(content: string): string[] {
-  return content.split('\n\n').filter(Boolean)
+  return normalize(content).split('\n\n').filter(Boolean)
 }
 
 export default function SnapshotCard({ report }: Props) {
