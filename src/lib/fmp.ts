@@ -223,7 +223,22 @@ interface PolyFinancialsResponse {
   status: string
 }
 
-// ─── Our clean snapshot type (unchanged interface) ────────────────────────────
+// ─── Snapshot endpoint (live intraday price + change) ─────────────────────────
+
+interface PolySnapshotTickerData {
+  day?: { c: number; o: number; h: number; l: number; v: number }
+  prevDay?: { c: number }
+  todaysChange?: number
+  todaysChangePerc?: number
+  lastTrade?: { p: number; t: number }
+}
+
+interface PolySnapshotResponse {
+  ticker?: PolySnapshotTickerData
+  status: string
+}
+
+// ─── Our clean snapshot type ──────────────────────────────────────────────────
 
 export interface StockSnapshot {
   ticker: string
@@ -236,6 +251,8 @@ export interface StockSnapshot {
   price: number
   change: number
   changePct: number
+  /** true = intraday live change; false = prior-day close-to-close change */
+  isLiveChange: boolean
   marketCap: number
   pe: number | null
   evToRevenue: number | null
@@ -260,16 +277,18 @@ export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
   if (!agg || !details) throw new PolygonNotFoundError(symbol)
   if (details.active === false) throw new PolygonNotFoundError(symbol)
 
-  const price = agg.c
-
-  // Phase 2: 2-day range for daily change, and quarterly financials (both optional)
+  // Phase 2: live snapshot, 2-day range for change fallback, and quarterly financials
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
   const weekAgo = new Date(yesterday)
   weekAgo.setDate(weekAgo.getDate() - 7)
   const fmt = (d: Date) => d.toISOString().slice(0, 10)
 
-  const [rangeData, financialsData] = await Promise.all([
+  const [snapshotData, rangeData, financialsData] = await Promise.all([
+    // Live intraday snapshot — gives todaysChangePerc when markets are open
+    polyFetchOptional<PolySnapshotResponse>(
+      `/v2/snapshot/locale/us/markets/stocks/tickers/${symbol}`
+    ),
     polyFetchOptional<PolyAggsResponse>(
       `/v2/aggs/ticker/${symbol}/range/1/day/${fmt(weekAgo)}/${fmt(yesterday)}`
     ),
@@ -278,15 +297,34 @@ export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
     ),
   ])
 
-  // Daily change from last two trading-day bars
+  // Prefer live intraday change from snapshot; fall back to prior-day close-to-close
+  let price = agg.c
   let change = 0
   let changePct = 0
-  const bars = rangeData?.results ?? []
-  if (bars.length >= 2) {
-    const latest = bars[bars.length - 1]
-    const prior = bars[bars.length - 2]
-    change = latest.c - prior.c
-    changePct = prior.c > 0 ? ((latest.c - prior.c) / prior.c) * 100 : 0
+  let isLiveChange = false
+
+  const snapTicker = snapshotData?.ticker
+  if (
+    snapTicker?.todaysChangePerc != null &&
+    snapTicker?.todaysChange != null &&
+    snapTicker.todaysChangePerc !== 0
+  ) {
+    // Live intraday data — markets open or data available today
+    price = snapTicker.day?.c ?? snapTicker.lastTrade?.p ?? agg.c
+    change = snapTicker.todaysChange
+    changePct = snapTicker.todaysChangePerc
+    isLiveChange = true
+  } else {
+    // Fall back: close-to-close change from the most recent two trading days
+    const bars = rangeData?.results ?? []
+    if (bars.length >= 2) {
+      const latest = bars[bars.length - 1]
+      const prior = bars[bars.length - 2]
+      price = latest.c
+      change = latest.c - prior.c
+      changePct = prior.c > 0 ? ((latest.c - prior.c) / prior.c) * 100 : 0
+    }
+    isLiveChange = false
   }
 
   // Financial metrics from quarterly income statements
@@ -336,6 +374,7 @@ export async function getStockSnapshot(ticker: string): Promise<StockSnapshot> {
     price,
     change,
     changePct,
+    isLiveChange,
     marketCap: details.market_cap ?? 0,
     pe,
     evToRevenue,

@@ -134,7 +134,7 @@ const TOOL_SCHEMA: Anthropic.Tool = {
       },
       catalysts: {
         type: 'string',
-        description: '3-5 specific upcoming catalysts, each on a new line starting with •. Format: "• [Catalyst Name] — [expected impact direction]". Forward-looking events only, not news recaps.',
+        description: '3-5 specific upcoming catalysts, each on a new line starting with •. Format: "• [Catalyst Name] — [expected impact direction]". Forward-looking events only, not news recaps. ONLY include catalysts that directly name or involve this specific company — no generic sector/macro commentary. Prefer: earnings dates, product/drug launches, regulatory decisions, analyst rating changes citing this company, executive changes, M&A involving this company directly.',
       },
       keyRisks: {
         type: 'string',
@@ -195,20 +195,29 @@ const TOOL_SCHEMA: Anthropic.Tool = {
       },
       comparables: {
         type: 'array',
-        description: 'Subject company first (use live data), then 4-5 sector peers.',
+        description: 'Subject company first (rowType: "subject", name wrapped in **), then 4-5 sector peers (rowType: "peer"), then one final Peer Median row (rowType: "peerMedian") with ticker "—" and median values for each numeric column calculated across peers only.',
         items: {
           type: 'object',
           required: ['ticker', 'name', 'price', 'marketCap', 'peForward', 'evRevenue', 'revenueGrowth', 'grossMargin'],
           properties: {
             ticker: { type: 'string' },
-            name: { type: 'string' },
+            name: { type: 'string', description: 'For subject company wrap in ** e.g. "**Apple Inc.**". For peerMedian row use "Peer Median".' },
             price: { type: 'string' },
             marketCap: { type: 'string' },
             peForward: { type: 'string' },
             evRevenue: { type: 'string' },
-            revenueGrowth: { type: 'string' },
+            revenueGrowth: { type: 'string', description: 'If inorganic growth (>40% YoY from M&A), append asterisk: "+85%*".' },
             grossMargin: { type: 'string' },
-            rating: { type: 'string', enum: ['BUY', 'OUTPERFORM', 'HOLD', 'UNDERPERFORM', 'SELL'] },
+            rating: {
+              type: 'string',
+              enum: ['BUY', 'OUTPERFORM', 'HOLD', 'UNDERPERFORM', 'SELL', 'N/A'],
+              description: 'Omit or use "N/A" for the peerMedian row.',
+            },
+            rowType: {
+              type: 'string',
+              enum: ['subject', 'peer', 'peerMedian'],
+              description: '"subject" for the analyzed company (first row), "peer" for comparables, "peerMedian" for the final median summary row.',
+            },
           },
         },
       },
@@ -222,7 +231,73 @@ You write with the precision and authority of a senior sell-side analyst at a to
 Your analysis is data-driven, specific, and actionable. You cite real numbers — earnings beats/misses, exact revenue figures,
 specific analyst price targets by name (e.g., "Goldman Sachs raised to $220"), actual margin percentages, and named catalysts.
 You NEVER write vague platitudes like "strong growth trajectory" without backing them with specific figures.
-Always anchor your narrative in the most recent quarterly earnings, management guidance, and analyst consensus.`
+Always anchor your narrative in the most recent quarterly earnings, management guidance, and analyst consensus.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OPERATING RULES — FOLLOW EXACTLY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### RULE 1 — N/A METRIC HANDLING
+When any financial metric (P/E, Gross Margin, EV/Revenue, Rev Growth) is null or unavailable:
+(a) SUBSTITUTE with the most relevant industry-specific alternative metric. Examples:
+    • Asset managers / alternative investment firms → Fee-Related Earnings (FRE) Margin, Fee-Related Revenue growth, Distributable Earnings
+    • REITs → Funds From Operations (FFO), FFO yield, Net Asset Value (NAV) per share, cap rate
+    • Marketplaces / e-commerce → Gross Merchandise Value (GMV), take rate, net revenue margin
+    • Pre-revenue biotech / clinical-stage → pipeline milestone progress, cash runway (months), burn rate
+    • Banks / insurance → Return on Equity (ROE), Net Interest Margin (NIM), combined ratio, efficiency ratio
+    • Infrastructure / utilities → EBITDA margin, distribution coverage ratio, rate base growth
+    • SaaS / subscription → Net Revenue Retention (NRR), Annual Recurring Revenue (ARR) growth, Rule of 40
+(b) If no suitable substitute exists: display a dash with inline note — "— N/M (pre-revenue)" or "— N/M (asset-light model)"
+(c) NEVER show more than one raw N/A in the metrics bar. If multiple metrics are unavailable, prioritize substituting the most investment-relevant metrics first, not just the first metric alphabetically.
+
+### RULE 2 — INORGANIC GROWTH DETECTION
+When revenue growth exceeds 40% year-over-year:
+• Investigate whether the growth is driven by acquisitions completed within the prior 18 months.
+• If acquisition-driven: explicitly note in the Financial Analysis section — "Revenue growth of X% was primarily driven by the [Acquisition Name] acquisition (closed [date]); organic growth is estimated at ~Y%."
+• In the comparables revenueGrowth field, flag with an asterisk: "+85%*" with a footnote: "* Includes contribution from [Acquisition Name]; organic growth estimated at ~Y%."
+• Source the organic vs. inorganic split from management guidance, earnings call transcripts, or sell-side consensus commentary. If no split is publicly disclosed, note it explicitly.
+
+### RULE 3 — CATALYSTS: COMPANY-SPECIFIC ONLY
+The catalysts field must contain ONLY events that directly involve this specific company:
+✓ INCLUDE: upcoming earnings dates, product/drug/service launches, regulatory decisions (FDA, FCC, DOJ antitrust, CFIUS), executive leadership changes (CEO, CFO, board), analyst upgrades or downgrades citing this company by name, M&A directly involving the company as buyer or target, major contract wins or partnership announcements, capital markets events (secondary offerings, share buyback authorizations)
+✗ EXCLUDE: generic sector commentary, broad macro trends not tied to a specific company decision, index inclusion/exclusion speculation without a named source, social media speculation, competitor news unless it DIRECTLY and materially affects this company's competitive standing (name the specific mechanism)
+
+### RULE 4 — COMPARABLES TABLE: PEER MEDIAN ROW
+Structure the comparables array as follows — THIS ORDER IS MANDATORY:
+1. Subject company — FIRST row, set rowType: "subject", wrap company name in ** for bold (e.g., "**Ares Management**")
+2. Four to five peer companies — rowType: "peer"
+3. Final summary row — rowType: "peerMedian", ticker: "—", name: "Peer Median", price: "—", marketCap: "—"
+   • Calculate the median for each numeric column (peForward, evRevenue, revenueGrowth, grossMargin) across peer rows only — exclude the subject company from median calculation
+   • Round medians to the same decimal precision as the individual peer values
+   • Do not include a rating value for the peerMedian row
+
+### RULE 5 — TEXT DENSITY: CALLOUT BOXES
+In the investmentThesis and businessOverview fields:
+After every 2-3 paragraphs of prose, insert a structured data callout using this EXACT syntax:
+[CALLOUT: MetricName: Value | MetricName: Value | MetricName: Value]
+Examples:
+  [CALLOUT: Credit AUM: $406.9B | 65% of Total AUM | #1 U.S. Market Position]
+  [CALLOUT: NRR: 118% | ARR Growth: +34% YoY | Gross Margin: 74%]
+Use 2-3 data points per callout. All data must come from company SEC filings or management commentary — no estimates. Callouts must directly reinforce the preceding paragraph's narrative.
+
+### RULE 6 — MULTI-SOURCE RESEARCH STANDARDS
+Cross-reference every section against multiple source tiers:
+TIER 1 — PRIMARY (highest trust): SEC filings (10-K, 10-Q, 8-K, proxy statements), earnings call transcripts, company press releases, investor day presentations
+TIER 2 — SECONDARY (verify against Tier 1): Reuters, Bloomberg, Financial Times, Wall Street Journal, Barron's
+TIER 3 — SUPPLEMENTAL: sell-side consensus estimates, analyst rating/price target history, industry trade publications, independent market research
+
+FORBIDDEN SOURCES: blog posts, SEO content farms, social media posts (Reddit, Twitter/X) as primary sources, unverified data aggregators, promotional/IR spin content without primary source backing, Wikipedia as a primary source
+
+When citing specific data points or claims, include source type inline where material:
+  "per the Q4 2024 earnings call" | "according to the most recent 10-K" | "per management guidance" | "per Bloomberg consensus"
+
+### RULE 7 — SOURCE DIVERSITY PER SECTION
+Each report section must draw from at least the source tiers indicated:
+• Investment Thesis → Tier 1 (company filings) + Tier 3 (independent industry analysis)
+• Financial Analysis → Tier 1 (10-K/10-Q as primary) + Tier 2 (earnings reporting for color)
+• Catalysts → Tier 2 (recent news coverage) + Tier 1 (company IR/press releases)
+• Industry & Competitive Positioning → Tier 1 (company disclosures) + Tier 3 (independent industry analysis, trade publications)
+No single section may rely entirely on one source type. The Investment Thesis must cross-reference company filings with independent data.`
 }
 
 function buildResearchSystemPrompt(): string {
@@ -246,6 +321,20 @@ function buildUserPrompt(snap: StockSnapshot, researchContext: string): string {
 
   const description = (snap.description || `${snap.name} operates in the ${snap.sector} sector (${snap.industry}).`).slice(0, 400)
 
+  const revenueGrowthPct = snap.revenueGrowth !== null ? snap.revenueGrowth * 100 : null
+  const highGrowthFlag = revenueGrowthPct !== null && revenueGrowthPct > 40
+    ? `\n⚠️  Revenue growth of ${revenueGrowthPct.toFixed(1)}% exceeds 40% — investigate whether this is M&A-driven (see Rule 2).`
+    : ''
+
+  const nullMetrics: string[] = []
+  if (snap.pe === null) nullMetrics.push('P/E')
+  if (snap.evToRevenue === null) nullMetrics.push('EV/Revenue')
+  if (snap.revenueGrowth === null) nullMetrics.push('Rev Growth')
+  if (snap.grossMargin === null) nullMetrics.push('Gross Margin')
+  const naNote = nullMetrics.length > 0
+    ? `\n⚠️  Null metrics: [${nullMetrics.join(', ')}] — apply Rule 1: substitute industry-specific alternatives for ${snap.sector} / ${snap.industry}.`
+    : ''
+
   return `Generate a complete institutional equity research report for ${snap.name} (${snap.ticker}).
 ${contextSection}
 ## Market Data
@@ -255,9 +344,10 @@ ${contextSection}
 - P/E (TTM): ${snap.pe !== null ? `${snap.pe.toFixed(1)}x` : 'N/A'} | EV/Rev: ${snap.evToRevenue !== null ? `${snap.evToRevenue.toFixed(1)}x` : 'N/A'}
 - Rev Growth: ${fmt(snap.revenueGrowth, 100, '%')} | Gross Margin: ${fmt(snap.grossMargin, 100, '%')}
 - ${description}
+${naNote}${highGrowthFlag}
 
 ## Instructions
-Call generate_investment_report. Fill every field precisely:
+Call generate_investment_report. Fill every field precisely. Follow ALL operating rules in the system prompt.
 
 SNAPSHOT (compact quick-read panel):
 - businessDescription: 1 sentence, no fluff
@@ -268,16 +358,16 @@ SNAPSHOT (compact quick-read panel):
 
 FULL REPORT (9 sections in order):
 1. investmentSummary: 1 paragraph, 5-6 sentences, PM-readable in 30 seconds
-2. investmentThesis: 2-3 paragraphs, each = one clear pillar (growth/moat/margin)
-3. businessOverview: 1-2 paragraphs, segments with percentages
-4. industryPositioning: 1 paragraph, TAM/competitors/market position
-5. financialAnalysis: 2-3 paragraphs, trend-focused, cite actual figures
+2. investmentThesis: 2-3 paragraphs + [CALLOUT] boxes per Rule 5
+3. businessOverview: 1-2 paragraphs + [CALLOUT] boxes per Rule 5, segments with percentages
+4. industryPositioning: 1 paragraph, TAM/competitors/market position (Tier 1 + Tier 3 sources)
+5. financialAnalysis: 2-3 paragraphs, trend-focused, cite actual figures (Tier 1 primary); flag inorganic growth per Rule 2
 6. forwardOutlook: 1 paragraph, trajectory + margin direction + bridge to valuation
 7. valuationIntro: 1 short paragraph, methodology + key multiple vs peers
-8. catalysts: 3-5 bullets (•) — "• [Event] — [impact direction]"
+8. catalysts: 3-5 bullets (•) — company-specific only per Rule 3 — "• [Event] — [impact direction]"
 9. keyRisks: 4-5 paragraphs (\\n\\n), each tied to specific thesis pillar
 
-QUANT: DCF (5-year projections in $B), 3 scenarios, 5-6 comparables (subject first)`
+QUANT: DCF (5-year projections in $B), 3 scenarios, comparables (subject first with rowType:"subject", peers with rowType:"peer", final Peer Median row with rowType:"peerMedian")`
 }
 
 /**

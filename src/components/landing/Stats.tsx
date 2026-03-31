@@ -47,9 +47,7 @@ export default function Stats() {
   return (
     <div className={styles.stats}>
       <div className={styles.item}>
-        <div className={styles.num}>
-          <AnimatedNumber target={reportsCount} />
-        </div>
+        <div className={styles.num}>600+</div>
         <div className={styles.label}>Reports Generated</div>
       </div>
       <div className={styles.item}>
@@ -59,7 +57,7 @@ export default function Stats() {
         <div className={styles.label}>Tickers Covered</div>
       </div>
       <div className={styles.item}>
-        <div className={styles.num}>&lt;30s</div>
+        <div className={styles.num}>&lt;15s</div>
         <div className={styles.label}>Average Generation</div>
       </div>
     </div>

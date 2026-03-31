@@ -10,6 +10,7 @@ import {
   type StockSnapshot,
 } from '@/lib/fmp'
 import { generateTIEBrief } from '@/lib/tie-engine'
+import { readCache, writeCache } from '@/lib/report-cache'
 import type { TIEBriefReport, KeyMetric } from '@/lib/types'
 
 function buildMetrics(snap: StockSnapshot): KeyMetric[] {
@@ -41,6 +42,19 @@ export async function GET(
 
   try {
     const snap = await getStockSnapshot(symbol)
+
+    const cached = readCache<TIEBriefReport>(symbol, 'brief')
+
+    if (cached) {
+      // Serve cached AI analysis with fresh market data
+      const report: TIEBriefReport = {
+        ...cached,
+        currentPrice: snap.price,
+        metrics: buildMetrics(snap),
+      }
+      return NextResponse.json(report, { headers: { 'X-Thesis-Cache': 'HIT' } })
+    }
+
     const brief = await generateTIEBrief(snap)
 
     const report: TIEBriefReport = {
@@ -65,7 +79,9 @@ export async function GET(
       topRisks:          { title: 'Key Risks',           content: brief.topRisks          },
     }
 
-    return NextResponse.json(report)
+    writeCache(symbol, 'brief', report)
+
+    return NextResponse.json(report, { headers: { 'X-Thesis-Cache': 'MISS' } })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error(`[brief/${symbol}]`, err instanceof Error ? err.name : 'Error', message)

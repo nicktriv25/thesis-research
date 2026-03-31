@@ -12,6 +12,7 @@ import {
 } from '@/lib/fmp'
 import { generateTIEAnalysis } from '@/lib/tie-engine'
 import { incrementCount } from '@/lib/counter'
+import { readCache, writeCache } from '@/lib/report-cache'
 import type { TIEReport, KeyMetric } from '@/lib/types'
 
 /**
@@ -24,11 +25,14 @@ import type { TIEReport, KeyMetric } from '@/lib/types'
 
 function buildMetrics(snap: StockSnapshot): KeyMetric[] {
   const sign = snap.changePct >= 0 ? '+' : ''
+  const changeLabel = snap.isLiveChange
+    ? `${sign}${snap.changePct.toFixed(2)}% today`
+    : `${sign}${snap.changePct.toFixed(2)}% at close`
   return [
     {
       label: 'Price',
       value: `$${snap.price.toFixed(2)}`,
-      sub: `${sign}${snap.changePct.toFixed(2)}% today`,
+      sub: changeLabel,
     },
     { label: 'Market Cap', value: formatMarketCap(snap.marketCap) },
     { label: 'P/E (TTM)', value: snap.pe ? `${snap.pe.toFixed(1)}x` : 'N/A' },
@@ -53,11 +57,24 @@ export async function GET(
   }
 
   try {
-    // Step 1: Fetch live market data + news from Polygon
+    // Step 1: Always fetch fresh market data + news from Polygon
     const [snap, news] = await Promise.all([
       getStockSnapshot(symbol),
       getStockNews(symbol),
     ])
+
+    const cached = readCache<TIEReport>(symbol, 'full')
+
+    if (cached) {
+      // Serve cached AI analysis with fresh market data and news
+      const report: TIEReport = {
+        ...cached,
+        currentPrice: snap.price,
+        metrics: buildMetrics(snap),
+        news,
+      }
+      return NextResponse.json(report, { headers: { 'X-Thesis-Cache': 'HIT' } })
+    }
 
     // Step 2: Generate full analysis via TIE Engine (Claude)
     const tie = await generateTIEAnalysis(snap)
@@ -106,9 +123,10 @@ export async function GET(
       news,
     }
 
+    writeCache(symbol, 'full', report)
     incrementCount()
 
-    return NextResponse.json(report)
+    return NextResponse.json(report, { headers: { 'X-Thesis-Cache': 'MISS' } })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error(`[report/${symbol}]`, err instanceof Error ? err.name : 'Error', message)

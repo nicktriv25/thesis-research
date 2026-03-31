@@ -81,6 +81,12 @@ export default function Hero() {
         DCF valuation, comparable analysis, and AI-driven insights — in seconds.
       </p>
 
+      <div className={styles.trustSignal}>
+        <span className={styles.trustLine} />
+        Built on SEC filings, earnings transcripts, and institutional-grade financial data.
+        <span className={styles.trustLine} />
+      </div>
+
       <div className={styles.searchWrap}>
         <svg className={styles.searchIcon} viewBox="0 0 20 20" fill="none" aria-hidden>
           <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.5" />

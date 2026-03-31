@@ -49,7 +49,29 @@
   color: var(--ink3);
   line-height: 1.6;
   max-width: 520px;
-  margin: 0 auto 40px;
+  margin: 0 auto 24px;
+}
+
+.trustSignal {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.trustLine {
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--ink4);
+  opacity: 0.4;
+  flex-shrink: 0;
 }
 
 /* Search */
