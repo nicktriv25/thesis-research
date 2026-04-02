@@ -1,11 +1,14 @@
+.statsWrapper {
+  position: relative;
+  z-index: 10;
+  animation: fade-up 0.8s ease 0.2s both;
+}
+
 .stats {
   display: flex;
   justify-content: center;
   gap: 64px;
   padding: 88px 48px 0;
-  position: relative;
-  z-index: 10;
-  animation: fade-up 0.8s ease 0.2s both;
 }
 
 .item {
@@ -26,10 +29,35 @@
   letter-spacing: 0.5px;
 }
 
+.trustSignal {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.trustLine {
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--ink4);
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
 @media (max-width: 700px) {
   .stats {
     gap: 24px;
     flex-wrap: wrap;
     padding: 32px 20px 0;
+  }
+  .trustSignal {
+    padding: 0 20px;
   }
 }

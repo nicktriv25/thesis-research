@@ -1,43 +1,53 @@
 .header {
-  padding: 36px 48px 28px;
   border-bottom: 2px solid var(--navy);
 }
 
-.eyebrow {
+/* Navy top banner */
+.banner {
+  background: var(--navy);
+  padding: 10px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bannerBrand {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #ffffff;
+}
+
+.bannerMeta {
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
-  color: var(--ink4);
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
-.dot {
-  display: inline-block;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--ink4);
-}
-
-.top {
+/* Body: company info + rating box */
+.body {
+  padding: 28px 48px 28px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24px;
+  gap: 28px;
 }
 
+.identity {
+  flex: 1;
+}
 
-.exchange {
+.tickerLine {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--accent);
-  letter-spacing: 1px;
-  margin-bottom: 6px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
 }
 
 .company {
@@ -47,21 +57,31 @@
   line-height: 1.1;
   color: var(--ink);
   letter-spacing: -0.5px;
+  margin-bottom: 10px;
 }
 
+.description {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--ink3);
+  line-height: 1.5;
+  max-width: 560px;
+}
 
-/* Rating box */
+/* Rating box — sharp corners, colored border */
 .ratingBox {
   text-align: center;
   padding: 16px 28px;
-  border-radius: 4px;
   border: 2px solid;
+  border-radius: 0;
   min-width: 140px;
   flex-shrink: 0;
 }
 
 .ratingLabel {
-  font-size: 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 2px;
   font-weight: 600;
@@ -81,39 +101,17 @@
 }
 
 /* Rating variants */
-.buy {
-  border-color: var(--buy);
-  background: var(--buy-bg);
-}
-.buy .ratingLabel,
-.buy .ratingAction,
-.buy .ratingTarget {
-  color: var(--buy);
-}
+.buy  { border-color: var(--buy);  background: var(--buy-bg); }
+.hold { border-color: var(--hold); background: var(--hold-bg); }
+.sell { border-color: var(--sell); background: var(--sell-bg); }
 
-.hold {
-  border-color: var(--hold);
-  background: var(--hold-bg);
-}
-.hold .ratingLabel,
-.hold .ratingAction,
-.hold .ratingTarget {
-  color: var(--hold);
-}
-
-.sell {
-  border-color: var(--sell);
-  background: var(--sell-bg);
-}
-.sell .ratingLabel,
-.sell .ratingAction,
-.sell .ratingTarget {
-  color: var(--sell);
-}
+.buy  .ratingLabel, .buy  .ratingAction, .buy  .ratingTarget { color: var(--buy); }
+.hold .ratingLabel, .hold .ratingAction, .hold .ratingTarget { color: var(--hold); }
+.sell .ratingLabel, .sell .ratingAction, .sell .ratingTarget { color: var(--sell); }
 
 @media (max-width: 700px) {
-  .header { padding: 24px 20px; }
-  .top { flex-direction: column; }
+  .banner { padding: 8px 20px; }
+  .body { padding: 20px; flex-direction: column; }
   .company { font-size: 28px; }
   .ratingBox { min-width: unset; width: 100%; }
 }

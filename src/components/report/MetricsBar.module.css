@@ -1,6 +1,7 @@
 .bar {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
+  background: var(--paper2);
   border-bottom: 1px solid var(--rule);
 }
 

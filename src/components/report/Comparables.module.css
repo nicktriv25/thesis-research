@@ -1,5 +1,5 @@
 .wrap {
-  margin-bottom: 36px;
+  margin-bottom: 44px;
 }
 
 .sectionTitle {
@@ -15,7 +15,7 @@
 .tableWrap {
   overflow-x: auto;
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: 0;
 }
 
 .table {
@@ -24,28 +24,29 @@
   font-size: 13px;
 }
 
+/* Navy header — institutional */
 .table thead {
-  background: var(--blue-tint);
+  background: var(--navy);
 }
 
 .table th {
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--ink4);
-  padding: 10px 14px;
+  color: rgba(255, 255, 255, 0.85);
+  padding: 11px 14px;
   text-align: right;
   white-space: nowrap;
-  border-bottom: 1px solid var(--rule);
 }
 
 .thLeft {
   text-align: left !important;
 }
 
-.table td {
+/* Body rows with alternating backgrounds */
+.table tbody tr td {
   padding: 11px 14px;
   text-align: right;
   font-family: var(--font-mono);
@@ -54,14 +55,15 @@
   border-bottom: 1px solid var(--rule);
 }
 
+.table tbody tr:nth-child(even) td {
+  background: var(--paper2);
+}
+
 .table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.table tbody tr:hover td {
-  background: var(--blue-tint);
-}
-
+/* Company name cell */
 .tdLeft {
   text-align: left !important;
   display: flex;
@@ -83,14 +85,39 @@
   font-weight: 400;
 }
 
-/* Highlighted row (the subject company) */
+/* Focus row — the subject company */
 .focusRow td {
-  background: color-mix(in srgb, var(--accent) 5%, transparent) !important;
-  font-weight: 600;
+  background: #e8eef5 !important;
+  font-weight: 700;
+  border-bottom: 1px solid #c8d4e0;
 }
 
 .focusRow .ticker {
-  color: var(--accent);
+  color: var(--navy);
+}
+
+/* Peer median footer row */
+.medianRow td {
+  padding: 10px 14px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-style: italic;
+  color: var(--ink3);
+  background: var(--paper2);
+  border-top: 2px solid var(--rule);
+}
+
+.medianRow .tdLeft {
+  text-align: left !important;
+}
+
+.medianLabel {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-style: italic;
+  color: var(--ink3);
+  font-weight: 500;
 }
 
 /* Color coding */

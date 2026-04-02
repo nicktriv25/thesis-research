@@ -45,20 +45,27 @@ export default function Stats() {
   }, [])
 
   return (
-    <div className={styles.stats}>
-      <div className={styles.item}>
-        <div className={styles.num}>600+</div>
-        <div className={styles.label}>Reports Generated</div>
-      </div>
-      <div className={styles.item}>
-        <div className={styles.num}>
-          <AnimatedNumber target={200} suffix="+" />
+    <div className={styles.statsWrapper}>
+      <div className={styles.stats}>
+        <div className={styles.item}>
+          <div className={styles.num}>600+</div>
+          <div className={styles.label}>Reports Generated</div>
         </div>
-        <div className={styles.label}>Tickers Covered</div>
+        <div className={styles.item}>
+          <div className={styles.num}>
+            <AnimatedNumber target={200} suffix="+" />
+          </div>
+          <div className={styles.label}>Tickers Covered</div>
+        </div>
+        <div className={styles.item}>
+          <div className={styles.num}>&lt;15s</div>
+          <div className={styles.label}>Average Generation</div>
+        </div>
       </div>
-      <div className={styles.item}>
-        <div className={styles.num}>&lt;15s</div>
-        <div className={styles.label}>Average Generation</div>
+      <div className={styles.trustSignal}>
+        <span className={styles.trustLine} />
+        Built on SEC filings, earnings transcripts, and institutional-grade financial data.
+        <span className={styles.trustLine} />
       </div>
     </div>
   )

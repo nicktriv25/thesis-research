@@ -21,7 +21,7 @@ export default function ReportView({ report }: Props) {
       <SnapshotCard report={report} />
 
       <div className={styles.content}>
-        <NarrativeSection section={report.investmentSummary} />
+        <NarrativeSection section={report.investmentSummary} variant="summary" />
         <NarrativeSection section={report.investmentThesis} />
         <NarrativeSection section={report.businessOverview} />
         <NarrativeSection section={report.industryPositioning} />
@@ -34,7 +34,7 @@ export default function ReportView({ report }: Props) {
         <Comparables comparables={report.comparables} focusTicker={report.ticker} />
 
         <NarrativeSection section={report.catalysts} />
-        <NarrativeSection section={report.keyRisks} />
+        <NarrativeSection section={report.keyRisks} variant="risks" />
         <NewsSection news={report.news ?? []} />
       </div>
 

@@ -2,11 +2,11 @@ import type { TIEReport } from '@/lib/types'
 import styles from './ReportHeader.module.css'
 
 const ratingClass: Record<string, string> = {
-  BUY:         'buy',
-  OUTPERFORM:  'buy',
-  HOLD:        'hold',
-  SELL:        'sell',
-  UNDERPERFORM:'sell',
+  BUY:          'buy',
+  OUTPERFORM:   'buy',
+  HOLD:         'hold',
+  SELL:         'sell',
+  UNDERPERFORM: 'sell',
 }
 
 interface Props {
@@ -21,26 +21,24 @@ export default function ReportHeader({ report }: Props) {
 
   return (
     <header className={styles.header}>
-      <div className={styles.eyebrow}>
-        <span>{report.reportType}</span>
-        <span className={styles.dot} />
-        <span>{date}</span>
-        <span className={styles.dot} />
-        <span>{report.sector.split('&')[0].trim()}</span>
+      <div className={styles.banner}>
+        <span className={styles.bannerBrand}>THESIS</span>
+        <span className={styles.bannerMeta}>{report.reportType} · {date}</span>
       </div>
 
-      <div className={styles.top}>
+      <div className={styles.body}>
         <div className={styles.identity}>
-          <div className={styles.exchange}>{report.exchange}: {report.ticker}</div>
+          <div className={styles.tickerLine}>{report.exchange}: {report.ticker}</div>
           <h1 className={styles.company}>{report.companyName}</h1>
+          {report.businessDescription && (
+            <p className={styles.description}>{report.businessDescription}</p>
+          )}
         </div>
 
         <div className={`${styles.ratingBox} ${styles[cls]}`}>
           <div className={styles.ratingLabel}>Rating</div>
           <div className={styles.ratingAction}>{report.rating}</div>
-          <div className={styles.ratingTarget}>
-            PT ${report.priceTarget.base.toFixed(2)}
-          </div>
+          <div className={styles.ratingTarget}>PT ${report.priceTarget.base.toFixed(2)}</div>
         </div>
       </div>
     </header>

@@ -77,15 +77,8 @@ export default function Hero() {
       </h1>
 
       <p className={styles.sub}>
-        Generate sell-side quality equity research reports on any public company.
-        DCF valuation, comparable analysis, and AI-driven insights — in seconds.
+        Generate sell-side quality equity research on any public company — in seconds.
       </p>
-
-      <div className={styles.trustSignal}>
-        <span className={styles.trustLine} />
-        Built on SEC filings, earnings transcripts, and institutional-grade financial data.
-        <span className={styles.trustLine} />
-      </div>
 
       <div className={styles.searchWrap}>
         <svg className={styles.searchIcon} viewBox="0 0 20 20" fill="none" aria-hidden>

@@ -1,5 +1,6 @@
+/* ── Default section ─────────────────────────────── */
 .wrap {
-  margin-bottom: 36px;
+  margin-bottom: 44px;
 }
 
 .title {
@@ -9,12 +10,53 @@
   color: var(--ink);
   padding-bottom: 10px;
   border-bottom: 1px solid var(--rule);
-  margin-bottom: 4px;
+  margin-bottom: 16px;
 }
 
+/* ── Investment Summary — callout block ─────────── */
+.summaryWrap {
+  margin-bottom: 44px;
+  background: var(--blue-tint);
+  border-left: 3px solid var(--navy);
+  padding: 22px 28px;
+}
+
+.summaryTitle {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin-bottom: 14px;
+}
+
+/* ── Key Risks — red/amber accent ───────────────── */
+.risksWrap {
+  margin-bottom: 44px;
+  border-left: 3px solid var(--hold);
+  padding-left: 20px;
+}
+
+.risksWrap .title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 16px;
+}
+
+/* ── Body text (all variants) ───────────────────── */
 .body {
+  font-family: var(--font-sans);
   font-size: 14px;
   color: var(--ink2);
-  line-height: 1.75;
+  line-height: 1.78;
   margin-top: 14px;
+}
+
+.body:first-of-type {
+  margin-top: 0;
 }

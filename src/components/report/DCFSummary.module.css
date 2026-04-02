@@ -1,5 +1,5 @@
 .wrap {
-  margin-bottom: 36px;
+  margin-bottom: 44px;
 }
 
 .sectionTitle {
@@ -12,20 +12,24 @@
   margin-bottom: 20px;
 }
 
+/* Intrinsic value + model inputs row */
 .topRow {
   display: flex;
-  gap: 24px;
-  margin-bottom: 20px;
-  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 24px;
+  align-items: stretch;
 }
 
 .verdict {
   background: var(--blue-tint);
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 20px 28px;
   text-align: center;
   min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .verdictLabel {
@@ -39,7 +43,7 @@
 }
 
 .verdictValue {
-  font-family: var(--font-serif);
+  font-family: var(--font-mono);
   font-size: 36px;
   font-weight: 700;
   color: var(--ink);
@@ -50,18 +54,18 @@
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 600;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .pos { color: var(--buy); }
 .neg { color: var(--sell); }
 
-/* Inputs box */
+/* Model inputs */
 .inputs {
   flex: 1;
   background: var(--paper);
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 16px 20px;
 }
 
@@ -72,13 +76,13 @@
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--ink4);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .inputsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .inputItem {
@@ -86,11 +90,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background: var(--blue-tint);
-  border-radius: 4px;
+  background: var(--paper2);
+  border-radius: 0;
+  border-left: 2px solid var(--navy);
 }
 
 .inputLabel {
+  font-family: var(--font-sans);
   font-size: 11px;
   color: var(--ink3);
 }
@@ -102,10 +108,10 @@
   color: var(--ink);
 }
 
-/* Projection table */
+/* Projection table — institutional styling */
 .tableWrap {
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -115,19 +121,18 @@
 }
 
 .table thead {
-  background: var(--blue-tint);
+  background: var(--navy);
 }
 
 .table th {
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--ink4);
-  padding: 10px 16px;
+  color: rgba(255, 255, 255, 0.85);
+  padding: 11px 16px;
   text-align: right;
-  border-bottom: 1px solid var(--rule);
 }
 
 .table th:first-child { text-align: left; }
@@ -141,8 +146,17 @@
   border-bottom: 1px solid var(--rule);
 }
 
-.table tbody tr:last-child td { border-bottom: none; }
-.table tbody tr:hover td { background: var(--blue-tint); }
+.table tbody tr:nth-child(even) td {
+  background: var(--paper2);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+  background: var(--blue-tint);
+  font-weight: 700;
+  color: var(--ink);
+  border-top: 2px solid var(--navy);
+}
 
 .yearCol {
   text-align: left !important;
