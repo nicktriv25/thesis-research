@@ -3,7 +3,7 @@
   z-index: 20;
   text-align: center;
   padding: 80px 48px 100px;
-  animation: fade-up 0.8s ease both;
+  animation: fade-up 0.5s var(--ease-out) both;
 }
 
 .eyebrow {
@@ -82,7 +82,7 @@
   font-size: 16px;
   color: var(--ink);
   outline: none;
-  transition: all 0.3s;
+  transition: border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
 }
 
@@ -106,6 +106,8 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   z-index: 9999;
   isolation: isolate;
+  animation: dropdown-in 150ms var(--ease-out) both;
+  transform-origin: top center;
 }
 
 .etfError {
@@ -125,10 +127,14 @@
   padding: 12px 20px;
   cursor: pointer;
   border-top: 1px solid var(--rule);
-  transition: background 0.15s;
+  transition: background 150ms var(--ease-out);
 }
 
-.result:hover { background: var(--paper2); }
+@media (hover: hover) and (pointer: fine) {
+  .result:hover { background: var(--paper2); }
+}
+
+.result:active { background: var(--paper2); }
 
 .rTicker {
   font-family: var(--font-mono);

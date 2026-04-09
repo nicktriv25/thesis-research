@@ -1,7 +1,7 @@
 .statsWrapper {
   position: relative;
   z-index: 10;
-  animation: fade-up 0.8s ease 0.2s both;
+  animation: fade-up 0.5s var(--ease-out) 0.15s both;
 }
 
 .stats {

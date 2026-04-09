@@ -32,13 +32,19 @@
   border: 1px solid var(--rule);
   border-radius: 4px;
   color: var(--ink3);
-  transition: all 0.2s;
+  transition: border-color 150ms var(--ease-out), color 150ms var(--ease-out), transform 150ms var(--ease-out);
   background: transparent;
 }
 
-.about:hover {
-  border-color: var(--ink3);
-  color: var(--ink);
+@media (hover: hover) and (pointer: fine) {
+  .about:hover {
+    border-color: var(--ink3);
+    color: var(--ink);
+  }
+}
+
+.about:active {
+  transform: scale(0.97);
 }
 
 @media (max-width: 700px) {

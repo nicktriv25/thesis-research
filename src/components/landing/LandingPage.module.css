@@ -52,10 +52,12 @@
 .footerLink {
   font-size: 11px;
   color: var(--ink4);
-  transition: color 0.2s;
+  transition: color 150ms var(--ease-out);
 }
 
-.footerLink:hover { color: var(--ink3); }
+@media (hover: hover) and (pointer: fine) {
+  .footerLink:hover { color: var(--ink3); }
+}
 
 @media (max-width: 700px) {
   .footer { padding: 20px; flex-direction: column; gap: 12px; }
